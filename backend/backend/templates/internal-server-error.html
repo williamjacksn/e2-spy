@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% set page_title = 'Error' %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">E2 Spy</a></li>
+    <li class="breadcrumb-item active">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+    <div class="row pt-3">
+        <div class="col">
+            <p>We ran into a problem. This is what we know.</p>
+            <p><code>{{ g.exception }}</code></p>
+        </div>
+    </div>
+{% endblock %}

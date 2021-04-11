@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_PID: Express
+      SA_PASSWORD: Passw0rd
+    ports:
+      - 1433:1433
+    volumes:
+      - db-data:/var/opt/mssql
+
+volumes:
+  db-data:

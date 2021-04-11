@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% set page_title = 'Loading Summary' %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">E2 Spy</a></li>
+    <li class="breadcrumb-item active">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+    <div class="row pt-3">
+        <div class="col">
+            <h1>{{ page_title }}</h1>
+        </div>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col">
+            <form class="form-inline">
+                <div class="input-group mr-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><strong>Department</strong></div>
+                    </div>
+                    <select class="custom-select" id="select-department">
+                        {% for dept in g.departments %}
+                        <option {{ 'selected' if dept == g.selected_department}}>{{ dept }}</option>
+                        {% endfor %}
+                    </select>    
+                </div>
+                <a href="{{ url_for('loading_summary_xlsx', department=g.selected_department) }}" class="btn btn-success">
+                    <i class="bi-file-earmark-spreadsheet"></i>
+                    Export
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Job Number</th>
+                        <th>Work Center</th>
+                        <th>Priority</th>
+                        <th>Part Number</th>
+                        <th>Description</th>
+                        <th>Qty to Make</th>
+                        <th>Qty Open</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Due Date</th>
+                        <th>Next Step</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.job_number }}</td>
+                        <td>{{ row.work_center }}</td>
+                        <td>{{ row.priority }}</td>
+                        <td>{{ row.part_number }}</td>
+                        <td>{{ row.part_description }}</td>
+                        <td>{{ row.quantity_to_make|int }}</td>
+                        <td>{{ row.quantity_open|int }}</td>
+                        <td>{{ row.start_date.date() }}</td>
+                        <td>{{ row.end_date.date() }}</td>
+                        <td>{{ row.due_date.date() }}</td>
+                        <td>{{ row.next_step }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block end_of_body %}
+    <script src="{{ url_for('static', filename='loading-summary.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% set page_title = 'Settings' %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">E2 Spy</a></li>
+    <li class="breadcrumb-item active">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+    <div class="row pt-3">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">E2 database</h5>
+
+                    {% if not g.db.e2_database_configured %}
+                    <div class="alert alert-warning">
+                        You must configure E2 database settings before you can use this app.
+                    </div>
+                    {% endif %}
+
+                    <form action="{{ url_for('settings_save') }}" method="post">
+                        <div class="form-group">
+                            <label for="e2-hostname">Hostname</label>
+                            <input type="text" class="form-control" id="e2-hostname" name="e2-hostname"
+                                   value="{{ g.db.e2_hostname if g.db.e2_hostname }}" placeholder="server[:port]">
+                            <small class="form-text text-muted">
+                                The name or IP address of the server where the E2 database is hosted. If the server is
+                                listening on a port other than <code>1433</code>, add the port after the hostname and
+                                separate it from the hostname with <code>:</code>.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="e2-database">Database</label>
+                            <input type="text" class="form-control" id="e2-database" name="e2-database"
+                                   value="{{ g.db.e2_database if g.db.e2_database }}">
+                            <small class="form-text text-muted">
+                                The name of the database that contains the data for E2.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="e2-user">User</label>
+                            <input type="text" class="form-control" id="e2-user" name="e2-user"
+                                   value="{{ g.db.e2_user if g.db.e2_user }}">
+                            <small class="form-text text-muted">
+                                The name of the user that has permission to connect to the database. The user can have
+                                read-only permission. This may be different from the user that can log in to the E2
+                                application.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="e2-password">Password</label>
+                            <input type="password" class="form-control" id="e2-password" name="e2-password"
+                                   value="{{ g.db.e2_password if g.db.e2_password }}">
+                            <small class="form-text text-muted">
+                                The password for the user to connect to the database.
+                            </small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
