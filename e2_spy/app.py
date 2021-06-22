@@ -1,4 +1,3 @@
-import appdirs
 import contextlib
 import flask
 import io
@@ -8,37 +7,35 @@ import pathlib
 import signal
 import sys
 import waitress
-import werkzeug
+import werkzeug.exceptions
 import xlsxwriter
 
 from e2_spy import db
 
 log = logging.getLogger(__name__)
 
-APP_DIRS = appdirs.AppDirs(appname='E2 Spy', appauthor='William Jackson')
-LOG_DIR = pathlib.Path(APP_DIRS.user_log_dir).resolve()
-os.makedirs(LOG_DIR, exist_ok=True)
-ERR_LOG = LOG_DIR / 'stderr.log'
-APP_LOG = LOG_DIR / 'app.log'
+LOCAL_DIR = pathlib.Path(os.getenv('LOCAL_DIR', '../.local')).resolve()
+ERR_LOG = LOCAL_DIR / 'stderr.log'
+APP_LOG = LOCAL_DIR / 'app.log'
 logging.basicConfig(filename=APP_LOG, format='%(asctime)s %(levelname)s [%(name)s] %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
 
-DB_PATH = pathlib.Path(APP_DIRS.user_data_dir).resolve() / 'app.db'
+DB_PATH = LOCAL_DIR / 'app.db'
 
 
 def get_database():
     """Get a connection to the database"""
-    return db.AppDatabase(DB_PATH)
+    return db.app.AppDatabase(DB_PATH)
 
 
-def get_e2_database(_db: db.AppDatabase) -> db.E2Database:
+def get_e2_database(_db: db.app.AppDatabase) -> db.e2.E2Database:
     cnx_details = {
         'server': _db.e2_hostname,
         'user': _db.e2_user,
         'password': _db.e2_password,
         'database': _db.e2_database
     }
-    return db.E2Database(cnx_details)
+    return db.e2.E2Database(cnx_details)
 
 
 app = flask.Flask(__name__)
