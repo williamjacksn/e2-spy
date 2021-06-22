@@ -1,0 +1,6 @@
+appdirs
+flask
+fort
+pymssql
+waitress
+xlsxwriter
