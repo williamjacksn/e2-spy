@@ -14,7 +14,7 @@ from db import AppDatabase, E2Database
 
 log = logging.getLogger(__name__)
 
-LOCAL_DIR = pathlib.Path(os.getenv('LOCAL_DIR', '../.local')).resolve()
+LOCAL_DIR = pathlib.Path(os.getenv('E2_SPY_LOCAL_DIR', '../.local')).resolve()
 ERR_LOG = LOCAL_DIR / 'stderr.log'
 APP_LOG = LOCAL_DIR / 'app.log'
 logging.basicConfig(filename=str(APP_LOG), format='%(asctime)s %(levelname)s [%(name)s] %(message)s',
