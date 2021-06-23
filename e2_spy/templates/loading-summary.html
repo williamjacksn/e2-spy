@@ -1,53 +1,49 @@
 {% extends 'base.html' %}
 
-{% set page_title = 'Loading Summary' %}
+{% set title = 'Loading Summary' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
 
 {% block breadcrumb %}
-    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">E2 Spy</a></li>
-    <li class="breadcrumb-item active">{{ page_title }}</li>
+    {% include 'includes/back-to-home.html' %}
 {% endblock %}
 
 {% block content %}
-    <div class="row pt-3">
-        <div class="col">
-            <h1>{{ page_title }}</h1>
-        </div>
-    </div>
+    {% include 'includes/page-title-h1.html' %}
 
-    <div class="row pt-3">
+    <div class="pt-3 row">
         <div class="col">
-            <form>
-                <div class="form-row">
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle mr-1" data-toggle="dropdown"
-                                    type="button">
-                                Departments
-                            </button>
-                            <div class="dropdown-menu p-2">
-                                <div class="form-group">
-                                    {% for dept in g.departments %}
-                                    <div class="custom-checkbox custom-control">
-                                        <input class="custom-control-input" id="check-{{ dept | lower }}"
-                                               name="department" type="checkbox" value="{{ dept }}"
-                                               {{ 'checked' if dept in g.selected_departments }}>
-                                        <label class="custom-control-label" for="check-{{ dept | lower }}">
-                                            {{ dept }}
-                                        </label>
-                                    </div>
-                                    {% endfor %}
+            <form class="row g-1">
+                <div class="col-auto">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" data-bs-auto-close="outside"
+                                data-bs-toggle="dropdown" type="button">
+                            Departments
+                        </button>
+                        <div class="dropdown-menu p-2">
+                            <div class="mb-3">
+                                {% for dept in g.departments %}
+                                <div class="form-check">
+                                    <input class="form-check-input" id="check-{{ dept | lower }}" name="department"
+                                           type="checkbox" value="{{ dept }}"
+                                           {{ 'checked' if dept in g.selected_departments }}>
+                                    <label class="form-check-label" for="check-{{ dept | lower }}">{{ dept }}</label>
                                 </div>
-                                <button class="btn btn-primary" type="submit">Filter</button>
+                                {% endfor %}
                             </div>
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi-funnel"></i>
+                                Filter
+                            </button>
                         </div>
                     </div>
-                    <div class="col-auto">
-                        <button class="btn btn-success" formaction="{{ url_for('loading_summary_xlsx') }}"
-                                type="submit">
-                            <i class="bi-file-earmark-spreadsheet"></i>
-                            Export
-                        </button>
-                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" formaction="{{ url_for('loading_summary_xlsx') }}"
+                            type="submit">
+                        <i class="bi-file-earmark-spreadsheet"></i>
+                        Export
+                    </button>
                 </div>
             </form>
         </div>
@@ -93,8 +89,4 @@
             </table>
         </div>
     </div>
-{% endblock %}
-
-{% block end_of_body %}
-    <script src="{{ url_for('static', filename='loading-summary.js') }}"></script>
 {% endblock %}
