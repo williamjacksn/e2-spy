@@ -37,7 +37,8 @@ class E2Database:
                 sd.due_date,
                 coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step
             from schedule_detail sd
-            left join schedule_detail ns on ns.schedule_job_id = sd.schedule_job_id and ns.item_number = sd.item_number + 1
+            left join schedule_detail ns
+                on ns.schedule_job_id = sd.schedule_job_id and ns.item_number = sd.item_number + 1
             where sd.department_name = %s
             and sd.step_status in ('Current', 'Pending')
             and sd.scheduled_start_date < %s
