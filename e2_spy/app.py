@@ -117,11 +117,8 @@ def settings_save():
     return flask.redirect(flask.url_for('index'))
 
 
-def main(port: int = None):
-    """Serve the app on the specified port"""
-    if port is None:
-        port = 8080
-    waitress.serve(app, port=port, threads=8)
+def main():
+    waitress.serve(app, port=config.PORT, threads=8)
 
 
 def handle_sigterm(_signal, _frame):
