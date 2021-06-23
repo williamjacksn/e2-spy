@@ -1,3 +1,4 @@
 .idea
 .local
 config.py
+__pycache__
