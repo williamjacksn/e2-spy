@@ -1,3 +1,4 @@
+import config
 import contextlib
 import flask
 import io
@@ -8,7 +9,6 @@ import waitress
 import werkzeug.exceptions
 import xlsxwriter
 
-from . import config
 from db import AppDatabase, E2Database
 
 log = logging.getLogger(__name__)
