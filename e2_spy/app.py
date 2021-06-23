@@ -63,8 +63,10 @@ def index():
 def loading_summary():
     """Render the Loading Summary report"""
     e2db = get_e2_database(flask.g.db)
-    flask.g.selected_department = flask.request.values.get('department', 'Processing')
-    flask.g.rows = e2db.get_loading_summary(flask.g.selected_department)
+    flask.g.selected_departments = flask.request.values.getlist('department')
+    if not flask.g.selected_departments:
+        flask.g.selected_departments = ['Processing']
+    flask.g.rows = e2db.get_loading_summary(flask.g.selected_departments)
     flask.g.departments = e2db.get_departments_list()
     return flask.render_template('loading-summary.html')
 
@@ -73,14 +75,16 @@ def loading_summary():
 def loading_summary_xlsx():
     """Generate the Loading Summary report as an Excel file"""
     e2db = get_e2_database(flask.g.db)
-    department_name = flask.request.values.get('department_name', 'Processing')
-    rows = e2db.get_loading_summary(department_name)
+    selected_departments = flask.request.values.getlist('department')
+    if not selected_departments:
+        selected_departments = ['Processing']
+    rows = e2db.get_loading_summary(selected_departments)
     output = io.BytesIO()
     workbook_options = {'default_date_format': 'yyyy-mm-dd', 'in_memory': True}
     workbook = xlsxwriter.Workbook(output, workbook_options)
     worksheet = workbook.add_worksheet()
     headers = [
-        'Job Number', 'Work Center', 'Priority', 'Part Number', 'Description', 'Qty to Make',
+        'Department', 'Job Number', 'Work Center', 'Priority', 'Part Number', 'Description', 'Qty to Make',
         'Qty Open', 'Start Date', 'End Date', 'Due Date', 'Next Step'
     ]
     col_widths = [len(v) for v in headers]

@@ -16,21 +16,39 @@
 
     <div class="row pt-3">
         <div class="col">
-            <form class="form-inline">
-                <div class="input-group mr-2">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text"><strong>Department</strong></div>
+            <form>
+                <div class="form-row">
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle mr-1" data-toggle="dropdown"
+                                    type="button">
+                                Departments
+                            </button>
+                            <div class="dropdown-menu p-2">
+                                <div class="form-group">
+                                    {% for dept in g.departments %}
+                                    <div class="custom-checkbox custom-control">
+                                        <input class="custom-control-input" id="check-{{ dept | lower }}"
+                                               name="department" type="checkbox" value="{{ dept }}"
+                                               {{ 'checked' if dept in g.selected_departments }}>
+                                        <label class="custom-control-label" for="check-{{ dept | lower }}">
+                                            {{ dept }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="btn btn-primary" type="submit">Filter</button>
+                            </div>
+                        </div>
                     </div>
-                    <select class="custom-select" id="select-department">
-                        {% for dept in g.departments %}
-                        <option {{ 'selected' if dept == g.selected_department}}>{{ dept }}</option>
-                        {% endfor %}
-                    </select>    
+                    <div class="col-auto">
+                        <button class="btn btn-success" formaction="{{ url_for('loading_summary_xlsx') }}"
+                                type="submit">
+                            <i class="bi-file-earmark-spreadsheet"></i>
+                            Export
+                        </button>
+                    </div>
                 </div>
-                <a href="{{ url_for('loading_summary_xlsx', department=g.selected_department) }}" class="btn btn-success">
-                    <i class="bi-file-earmark-spreadsheet"></i>
-                    Export
-                </a>
             </form>
         </div>
     </div>
@@ -40,6 +58,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th>Department</th>
                         <th>Job Number</th>
                         <th>Work Center</th>
                         <th>Priority</th>
@@ -56,6 +75,7 @@
                 <tbody>
                 {% for row in g.rows %}
                     <tr>
+                        <td>{{ row.department_name }}</td>
                         <td>{{ row.job_number }}</td>
                         <td>{{ row.work_center }}</td>
                         <td>{{ row.priority }}</td>

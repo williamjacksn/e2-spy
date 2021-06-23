@@ -22,9 +22,10 @@ class E2Database:
         '''
         return [row.get('department_name') for row in self.q(sql)]
 
-    def get_loading_summary(self, department_name: str):
+    def get_loading_summary(self, departments: list[str]):
         sql = '''
             select
+                sd.department_name,
                 sd.job_number,
                 sd.work_center,
                 sd.priority,
@@ -39,13 +40,13 @@ class E2Database:
             from schedule_detail sd
             left join schedule_detail ns
                 on ns.schedule_job_id = sd.schedule_job_id and ns.item_number = sd.item_number + 1
-            where sd.department_name = %s
+            where sd.department_name in %s
             and sd.step_status in ('Current', 'Pending')
             and sd.scheduled_start_date < %s
             order by sd.due_date
         '''
         params = (
-            department_name,
+            departments,
             pymssql.datetime.date.today() + pymssql.datetime.timedelta(days=1)
         )
         return self.q(sql, params)
