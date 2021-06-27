@@ -3,18 +3,8 @@
 {% block content %}
     <div class="row pt-3">
         <div class="col">
-            <a href="{{ url_for('settings') }}" class="btn btn-outline-dark">
-                <i class="bi-gear"></i>
-                Settings
-            </a>
-        </div>
-    </div>
-
-    <div class="row pt-3">
-        <div class="col">
-            <a href="{{ url_for('loading_summary') }}" class="btn btn-outline-dark slow">
-                Loading Summary
-            </a>
+            <a href="{{ url_for('loading_summary') }}" class="btn btn-outline-dark slow">Loading Summary</a>
+            <a class="btn btn-outline-dark slow" href="{{ url_for('open_sales_report') }}">Open Sales Report</a>
         </div>
     </div>
 {% endblock %}

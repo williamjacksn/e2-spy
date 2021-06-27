@@ -105,6 +105,44 @@ def loading_summary_xlsx():
     return response
 
 
+@app.route('/open-sales-report')
+def open_sales_report():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.open_sales_report()
+    return flask.render_template('open-sales-report.html')
+
+
+@app.route('/open-sales-report.xlsx')
+def open_sales_report_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.open_sales_report()
+    output = io.BytesIO()
+    workbook_options = {'default_date_format': 'yyyy-mm-dd', 'in_memory': True}
+    workbook = xlsxwriter.Workbook(output, workbook_options)
+    worksheet = workbook.add_worksheet()
+    headers = [
+        'Job Number', 'Job Priority', 'Hold Status', 'Parent Job Number', 'Part Number', 'Part Description',
+        'Qty to Make', 'Qty Open', 'Customer Code', 'Customer PO', 'Sales Amount', 'Order Date', 'Ship By Date',
+        'Scheduled End Date', 'Vendor', 'Vendor PO', 'PO Date', 'PO Due Date'
+    ]
+    col_widths = [len(v) for v in headers]
+    worksheet.write_row(0, 0, headers)
+    for i, row in enumerate(rows, start=1):
+        worksheet.write_row(i, 0, row.values())
+        # find maximum column widths
+        col_widths = [max(col_widths[j], len(str(v))) for j, v in enumerate(row.values())]
+    for i, width in enumerate(col_widths):
+        # set column widths
+        worksheet.set_column(i, i, width)
+    workbook.close()
+    response = flask.make_response(output.getvalue())
+    response.headers.update({
+        'Content-Disposition': 'attachment; filename="Open Sales Report.xlsx"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+    return response
+
+
 @app.route('/settings')
 def settings():
     """Render the /settings page"""

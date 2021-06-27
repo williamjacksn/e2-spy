@@ -50,3 +50,34 @@ class E2Database:
             pymssql.datetime.date.today() + pymssql.datetime.timedelta(days=1)
         )
         return self.q(sql, params)
+
+    def open_sales_report(self):
+        sql = '''
+            select
+                j.job_number,
+                j.priority job_priority,
+                od.status hold_status,
+                j.grid_parent_job_number parent_job_number,
+                j.part_number,
+                j.part_description,
+                j.quantity_to_make,
+                j.quantity_open,
+                j.customer_code,
+                oh.customer_po_number customer_po,
+                j.sales_amount,
+                j.order_date,
+                j.projected_ship_date ship_by_date,
+                j.scheduled_end_date,
+                concat_ws(' / ', poh.vendor_code, poh.vendor_name) vendor,
+                poh.po_number vendor_po,
+                poh.po_date,
+                poh.due_date po_due_date
+            from schedule_job j
+            left join order_header oh on oh.order_header_id = j.order_header_id
+            left join order_detail od on od.order_detail_id = j.order_detail_id
+            left join po_detail pod on pod.grid_job_number = j.job_number
+            left join po_header poh on poh.po_header_id = pod.po_header_id
+            where j.schedule_header_id = 50
+            order by j.priority
+        '''
+        return self.q(sql)

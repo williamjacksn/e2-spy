@@ -11,8 +11,8 @@
     </head>
     <body>
         <div class="container-fluid">
-            <div class="row pt-3">
-                <div class="col">
+            <div class="pt-3 row justify-content-between">
+                <div class="col-auto">
                     {% block breadcrumb %}
                     <a class="btn btn-outline-dark" href="#">
                         <strong>
@@ -21,6 +21,11 @@
                         </strong>
                     </a>
                     {% endblock %}
+                </div>
+                <div class="col-auto">
+                    <a class="btn btn-outline-dark" href="{{ url_for('settings') }}" title="Settings">
+                        <i class="bi-gear"></i>
+                    </a>
                 </div>
             </div>
 

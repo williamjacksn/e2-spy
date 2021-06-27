@@ -23,5 +23,3 @@ Job current step
 Sales Orders
 
 order can have multiple jobs
-
-loading summary filtering: select multiple departments

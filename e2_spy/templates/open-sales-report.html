@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% set title = 'Open Sales Report' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <a class="btn btn-outline-success" href="{{ url_for('open_sales_report_xlsx') }}">
+                <i class="bi-file-earmark-spreadsheet"></i>
+                Export
+            </a>
+        </div>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col">
+            <table class="table table-responsive table-striped">
+                <thead>
+                    <tr>
+                        <th>Job Number</th>
+                        <th>Job Priority</th>
+                        <th>Hold Status</th>
+                        <th>Parent Job Number</th>
+                        <th>Part Number</th>
+                        <th>Part Description</th>
+                        <th>Qty to Make</th>
+                        <th>Qty Open</th>
+                        <th>Customer Code</th>
+                        <th>Customer PO</th>
+                        <th class="text-end">Sales Amount</th>
+                        <th>Order Date</th>
+                        <th>Ship By Date</th>
+                        <th>Scheduled End Date</th>
+                        <th>Vendor</th>
+                        <th>Vendor PO</th>
+                        <th>PO Date</th>
+                        <th>PO Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.job_number }}</td>
+                        <td>{{ row.job_priority }}</td>
+                        <td>{{ row.hold_status }}</td>
+                        <td>{{ row.parent_job_number }}</td>
+                        <td>{{ row.part_number }}</td>
+                        <td>{{ row.part_description }}</td>
+                        <td>{{ row.quantity_to_make|int }}</td>
+                        <td>{{ row.quantity_open|int }}</td>
+                        <td>{{ row.customer_code }}</td>
+                        <td>{{ row.customer_po }}</td>
+                        <td class="text-end">$&nbsp;{{ '{:,.2f}'.format(row.sales_amount) }}</td>
+                        <td>{{ row.order_date.date() }}</td>
+                        <td>{{ row.ship_by_date.date() }}</td>
+                        <td>{{ row.scheduled_end_date.date() if row.scheduled_end_date }}</td>
+                        <td>{{ row.vendor }}</td>
+                        <td>{{ row.vendor_po or '' }}</td>
+                        <td>{{ row.po_date.date() if row.po_date }}</td>
+                        <td>{{ row.po_due_date.date() if row.po_due_date }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

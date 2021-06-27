@@ -6,6 +6,8 @@ function build_spinner() {
 
 document.querySelectorAll('a.slow').forEach((el) => {
     el.addEventListener('click', (ev) => {
+        const space = document.createTextNode(' ');
+        ev.target.appendChild(space);
         ev.target.appendChild(build_spinner());
     });
 });
