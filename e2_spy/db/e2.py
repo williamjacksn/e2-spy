@@ -53,6 +53,11 @@ class E2Database:
 
     def open_sales_report(self):
         sql = '''
+            with jpo as (
+                select distinct job_number, po_header_id
+                from order_material
+                where po_header_id is not null
+            )
             select
                 j.job_number,
                 j.priority job_priority,
@@ -75,9 +80,9 @@ class E2Database:
             from schedule_job j
             left join order_header oh on oh.order_header_id = j.order_header_id
             left join order_detail od on od.order_detail_id = j.order_detail_id
-            left join po_detail pod on pod.grid_job_number = j.job_number
-            left join po_header poh on poh.po_header_id = pod.po_header_id
+            left join jpo on jpo.job_number = j.job_number
+            left join po_header poh on poh.po_header_id = jpo.po_header_id
             where j.schedule_header_id = 50
-            order by j.priority
+            order by j.priority, poh.po_number
         '''
         return self.q(sql)
