@@ -25,25 +25,24 @@ class E2Database:
     def get_loading_summary(self, departments: list[str]):
         sql = '''
             select
-                sd.department_name,
-                sd.job_number,
-                sd.work_center,
-                sd.priority,
-                sd.part_number,
-                sd.part_description,
-                sd.quantity_to_make,
-                sd.quantity_open,
-                sd.scheduled_start_date start_date,
-                sd.scheduled_end_date end_date,
-                sd.due_date,
+                sd.department_name, sd.job_number, sd.work_center, sd.priority, sd.part_number, sd.part_description,
+                sd.quantity_to_make, sd.quantity_open, sd.scheduled_start_date start_date,
+                sd.scheduled_end_date end_date, sd.due_date,
                 coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step
-            from schedule_detail sd
+            from (
+                select
+                    department_name, due_date, item_number, job_number, part_description, part_number, priority,
+                    quantity_open, quantity_to_make, schedule_job_id, scheduled_end_date, scheduled_start_date,
+                    step_number, work_center, row_number() over (partition by job_number order by item_number) z
+                from schedule_detail
+                where schedule_header_id = 50
+                and department_name in %s
+                and scheduled_start_date < %s
+                and step_status in ('current', 'pending')) sd
             left join schedule_detail ns
                 on ns.schedule_job_id = sd.schedule_job_id and ns.item_number = sd.item_number + 1
-            where sd.department_name in %s
-            and sd.step_status in ('Current', 'Pending')
-            and sd.scheduled_start_date < %s
-            order by sd.due_date
+            where z = 1
+            order by priority
         '''
         params = (
             departments,
