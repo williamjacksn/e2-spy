@@ -119,6 +119,7 @@ def open_sales_report_xlsx():
     output = io.BytesIO()
     workbook_options = {'default_date_format': 'yyyy-mm-dd', 'in_memory': True}
     workbook = xlsxwriter.Workbook(output, workbook_options)
+    text_wrap = workbook.add_format({'text_wrap': True})
     worksheet = workbook.add_worksheet()
     headers = [
         'Job Number', 'Job Priority', 'Hold Status', 'Parent Job Number', 'Part Number', 'Part Description',
@@ -128,7 +129,7 @@ def open_sales_report_xlsx():
     col_widths = [len(v) for v in headers]
     worksheet.write_row(0, 0, headers)
     for i, row in enumerate(rows, start=1):
-        worksheet.write_row(i, 0, row.values())
+        worksheet.write_row(i, 0, row.values(), text_wrap)
         # find maximum column widths
         col_widths = [max(col_widths[j], len(str(v))) for j, v in enumerate(row.values())]
     for i, width in enumerate(col_widths):
