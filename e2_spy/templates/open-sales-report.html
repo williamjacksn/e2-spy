@@ -64,8 +64,8 @@
                         <td>{{ row.scheduled_end_date.date() if row.scheduled_end_date }}</td>
                         <td>{{ row.vendor }}</td>
                         <td>{{ row.vendor_po or '' }}</td>
-                        <td>{{ row.po_date.date() if row.po_date }}</td>
-                        <td>{{ row.po_due_date.date() if row.po_due_date }}</td>
+                        <td>{{ row.po_date if row.po_date }}</td>
+                        <td>{{ row.po_due_date if row.po_due_date }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
