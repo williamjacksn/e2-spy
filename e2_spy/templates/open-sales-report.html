@@ -61,11 +61,11 @@
                         <td class="text-end">$&nbsp;{{ '{:,.2f}'.format(row.sales_amount) }}</td>
                         <td>{{ row.order_date }}</td>
                         <td>{{ row.ship_by_date }}</td>
-                        <td>{{ row.scheduled_end_date if row.scheduled_end_date }}</td>
-                        <td>{{ row.vendor }}</td>
+                        <td>{{ row.scheduled_end_date or '' }}</td>
+                        <td>{{ row.vendor or '' }}</td>
                         <td>{{ row.vendor_po or '' }}</td>
-                        <td>{{ row.po_date if row.po_date }}</td>
-                        <td>{{ row.po_due_date if row.po_due_date }}</td>
+                        <td>{{ row.po_date or '' }}</td>
+                        <td>{{ row.po_due_date or '' }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
