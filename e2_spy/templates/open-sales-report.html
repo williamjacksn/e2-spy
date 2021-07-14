@@ -62,10 +62,10 @@
                         <td>{{ row.order_date }}</td>
                         <td>{{ row.ship_by_date }}</td>
                         <td>{{ row.scheduled_end_date or '' }}</td>
-                        <td>{{ row.vendor or '' }}</td>
-                        <td>{{ row.vendor_po or '' }}</td>
-                        <td>{{ row.po_date or '' }}</td>
-                        <td>{{ row.po_due_date or '' }}</td>
+                        <td>{{ row.vendor.splitlines() | join('<br>' | safe) if row.vendor }}</td>
+                        <td>{{ row.vendor_po.splitlines() | join('<br>' | safe) if row.vendor_po }}</td>
+                        <td>{{ row.po_date.splitlines() | join('<br>' | safe) if row.po_date }}</td>
+                        <td>{{ row.po_due_date.splitlines() | join('<br>' | safe) if row.po_due_date }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
