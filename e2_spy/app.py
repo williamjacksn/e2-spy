@@ -123,8 +123,8 @@ def open_sales_report_xlsx():
     worksheet = workbook.add_worksheet()
     headers = [
         'Job Number', 'Job Priority', 'Hold Status', 'Parent Job Number', 'Part Number', 'Part Description',
-        'Qty to Make', 'Qty Open', 'Customer Code', 'Customer PO', 'Sales Amount', 'Order Date', 'Ship By Date',
-        'Scheduled End Date', 'Vendor', 'Vendor PO', 'PO Date', 'PO Due Date'
+        'Current Step', 'Qty to Make', 'Qty Open', 'Customer Code', 'Customer PO', 'Sales Amount', 'Order Date',
+        'Ship By Date', 'Scheduled End Date', 'Vendor', 'Vendor PO', 'PO Date', 'PO Due Date'
     ]
     col_widths = [len(v) for v in headers]
     worksheet.write_row(0, 0, headers)

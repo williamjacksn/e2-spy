@@ -31,6 +31,7 @@
                         <th class="bg-dark position-sticky text-light top-0">Parent Job Number</th>
                         <th class="bg-dark position-sticky text-light top-0">Part Number</th>
                         <th class="bg-dark position-sticky text-light top-0">Part Description</th>
+                        <th class="bg-dark position-sticky text-light top-0">Current Step</th>
                         <th class="bg-dark position-sticky text-light top-0">Qty to Make</th>
                         <th class="bg-dark position-sticky text-light top-0">Qty Open</th>
                         <th class="bg-dark position-sticky text-light top-0">Customer Code</th>
@@ -54,6 +55,7 @@
                         <td>{{ row.parent_job_number }}</td>
                         <td>{{ row.part_number }}</td>
                         <td>{{ row.part_description }}</td>
+                        <td>{{ row.current_step }}</td>
                         <td>{{ row.quantity_to_make|int }}</td>
                         <td>{{ row.quantity_open|int }}</td>
                         <td>{{ row.customer_code }}</td>
