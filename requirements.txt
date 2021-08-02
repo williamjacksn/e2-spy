@@ -6,8 +6,6 @@
 #
 click==8.0.1
     # via flask
-colorama==0.4.4
-    # via click
 flask==2.0.1
     # via -r requirements.in
 fort==1.0.1
@@ -24,5 +22,5 @@ waitress==2.0.0
     # via -r requirements.in
 werkzeug==2.0.1
     # via flask
-xlsxwriter==1.4.4
+xlsxwriter==1.4.5
     # via -r requirements.in
