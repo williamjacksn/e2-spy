@@ -51,7 +51,7 @@ def before_request():
     flask.g.db = get_database()
 
 
-@app.route('/')
+@app.get('/')
 def index():
     """Render the front page"""
     if flask.g.db.e2_database_configured:
@@ -59,7 +59,22 @@ def index():
     return flask.redirect(flask.url_for('settings'))
 
 
-@app.route('/loading-summary')
+@app.post('/job-notes')
+def job_notes():
+    for k, v in flask.request.values.lists():
+        log.debug(f'{k}: {v}')
+    db: AppDatabase = flask.g.db
+    job_number = flask.request.values.get('job_number')
+    notes = flask.request.values.get('notes')
+    if notes:
+        db.job_notes_update(job_number, notes)
+    else:
+        db.job_notes_delete(job_number)
+    next_view = flask.request.values.get('next_view')
+    return flask.redirect(flask.url_for(next_view))
+
+
+@app.get('/loading-summary')
 def loading_summary():
     """Render the Loading Summary report"""
     e2db = get_e2_database(flask.g.db)
@@ -71,7 +86,7 @@ def loading_summary():
     return flask.render_template('loading-summary.html')
 
 
-@app.route('/loading-summary.xlsx')
+@app.get('/loading-summary.xlsx')
 def loading_summary_xlsx():
     """Generate the Loading Summary report as an Excel file"""
     e2db = get_e2_database(flask.g.db)
@@ -105,17 +120,19 @@ def loading_summary_xlsx():
     return response
 
 
-@app.route('/open-sales-report')
+@app.get('/open-sales-report')
 def open_sales_report():
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.open_sales_report()
+    flask.g.job_notes = flask.g.db.job_notes_list()
     return flask.render_template('open-sales-report.html')
 
 
-@app.route('/open-sales-report.xlsx')
+@app.get('/open-sales-report.xlsx')
 def open_sales_report_xlsx():
     e2db = get_e2_database(flask.g.db)
     rows = e2db.open_sales_report()
+    notes = flask.g.db.job_notes_list()
     output = io.BytesIO()
     workbook_options = {'default_date_format': 'yyyy-mm-dd', 'in_memory': True}
     workbook = xlsxwriter.Workbook(output, workbook_options)
@@ -124,12 +141,13 @@ def open_sales_report_xlsx():
     headers = [
         'Job Number', 'Job Priority', 'Hold Status', 'Parent Job Number', 'Part Number', 'Part Description',
         'Current Step', 'Qty to Make', 'Qty Open', 'Customer Code', 'Customer PO', 'Sales Amount', 'Order Date',
-        'Ship By Date', 'Scheduled End Date', 'Vendor', 'Vendor PO', 'PO Date', 'PO Due Date'
+        'Ship By Date', 'Scheduled End Date', 'Vendor', 'Vendor PO', 'PO Date', 'PO Due Date', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
     worksheet.write_row(0, 0, headers)
     for i, row in enumerate(rows, start=1):
         worksheet.write_row(i, 0, row.values(), text_wrap)
+        worksheet.write_string(i, len(headers) - 1, notes.get(row['job_number'], ''), text_wrap)
         # find maximum column widths
         col_widths = [max(col_widths[j], len(str(v))) for j, v in enumerate(row.values())]
     for i, width in enumerate(col_widths):
@@ -144,13 +162,13 @@ def open_sales_report_xlsx():
     return response
 
 
-@app.route('/settings')
+@app.get('/settings')
 def settings():
     """Render the /settings page"""
     return flask.render_template('settings.html')
 
 
-@app.route('/settings/save', methods=['post'])
+@app.post('/settings/save')
 def settings_save():
     """Handle a POST request to save settings to the database"""
     flask.g.db.e2_database = flask.request.values.get('e2-database')

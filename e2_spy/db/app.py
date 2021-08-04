@@ -74,6 +74,33 @@ class AppDatabase(fort.SQLiteDatabase):
         }
         self.u(sql, params)
 
+    def job_notes_delete(self, job_number: str):
+        sql = '''
+            delete from job_notes where job_number = :job_number
+        '''
+        params = {
+            'job_number': job_number
+        }
+        self.u(sql, params)
+
+    def job_notes_list(self):
+        sql = '''
+            select job_number, notes
+            from job_notes
+        '''
+        return {r['job_number']: r['notes'] for r in self.q(sql)}
+
+    def job_notes_update(self, job_number: str, notes: str):
+        sql = '''
+            insert into job_notes (job_number, notes) values (:job_number, :notes)
+            on conflict (job_number) do update set notes = :notes 
+        '''
+        params = {
+            'job_number': job_number,
+            'notes': notes
+        }
+        self.u(sql, params)
+
     def add_schema_version(self, schema_version: int):
         """Add a schema version to the database."""
         self._version = schema_version
@@ -106,10 +133,19 @@ class AppDatabase(fort.SQLiteDatabase):
             ''')
             self.secret_key = secrets.token_bytes()
             self.add_schema_version(1)
+        if self.version < 2:
+            self.log.info('Migrating database to schema version 2')
+            self.u('''
+                create table job_notes (
+                    job_number text primary key,
+                    notes text
+                )
+            ''')
+            self.add_schema_version(2)
 
     def _table_exists(self, table_name: str) -> bool:
         sql = '''
-            select count(*) table_count from sqlite_schema where type = :type and name = :table_name
+            select count(*) table_count from sqlite_master where type = :type and name = :table_name
         '''
         params = {
             'type': 'table',
