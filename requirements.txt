@@ -22,5 +22,5 @@ waitress==2.0.0
     # via -r requirements.in
 werkzeug==2.0.1
     # via flask
-xlsxwriter==1.4.5
+xlsxwriter==3.0.1
     # via -r requirements.in
