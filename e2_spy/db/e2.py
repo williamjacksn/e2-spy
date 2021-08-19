@@ -80,31 +80,32 @@ class E2Database:
                 where z = 1
             )
             select
-                j.job_number,
-                j.priority job_priority,
-                od.status hold_status,
-                j.grid_parent_job_number parent_job_number,
-                j.part_number,
-                j.part_description,
-                jcs.current_step,
-                j.quantity_to_make,
-                j.quantity_open,
-                j.customer_code,
+                od.job_number,
+                od.priority,
+                od.status,
+                od.grid_parent_job_number parent_job_number,
+                od.part_number,
+                od.part_description,
+                coalesce(jcs.current_step, '') current_step,
+                od.quantity_to_make,
+                od.quantity_open,
+                oh.customer_code,
                 oh.customer_po_number customer_po,
-                j.sales_amount,
-                format(j.order_date, 'yyyy-MM-dd') order_date,
-                format(j.projected_ship_date, 'yyyy-MM-dd') ship_by_date,
-                format(j.scheduled_end_date, 'yyyy-MM-dd') scheduled_end_date,
+                sj.sales_amount,
+                coalesce(format(sj.order_date, 'yyyy-MM-dd'), '') order_date,
+                coalesce(format(sj.projected_ship_date, 'yyyy-MM-dd'), '') ship_by_date,
+                coalesce(format(sj.scheduled_end_date, 'yyyy-MM-dd'), '') scheduled_end_date,
                 jpo.vendor,
                 jpo.vendor_po,
                 jpo.po_date,
                 jpo.po_due_date
-            from schedule_job j
-            left join order_header oh on oh.order_header_id = j.order_header_id
-            left join order_detail od on od.order_detail_id = j.order_detail_id
-            left join jpo on jpo.job_number = j.job_number
-            left join jcs on jcs.job_number = j.job_number
-            where j.schedule_header_id = 50
-            order by j.priority
+            from order_detail od
+            left join order_header oh on oh.order_header_id = od.order_header_id
+            left join jcs on jcs.job_number = od.job_number
+            left join schedule_job sj on sj.order_detail_id = od.order_detail_id and sj.schedule_header_id = 50
+            left join jpo on jpo.job_number = od.job_number
+            where od.company_code = 'spmtech'
+            and od.status in ('hold', 'in process', 'released')
+            order by od.priority
         '''
         return self.q(sql)

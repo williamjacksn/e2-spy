@@ -26,8 +26,8 @@
                 <thead class="bg-dark position-sticky text-light top-0">
                     <tr>
                         <th class="bg-dark position-sticky text-light top-0">Job Number</th>
-                        <th class="bg-dark position-sticky text-light top-0">Job Priority</th>
-                        <th class="bg-dark position-sticky text-light top-0">Hold Status</th>
+                        <th class="bg-dark position-sticky text-light top-0">Priority</th>
+                        <th class="bg-dark position-sticky text-light top-0">Status</th>
                         <th class="bg-dark position-sticky text-light top-0">Parent Job Number</th>
                         <th class="bg-dark position-sticky text-light top-0">Part Number</th>
                         <th class="bg-dark position-sticky text-light top-0">Part Description</th>
@@ -49,10 +49,10 @@
                 </thead>
                 <tbody>
                 {% for row in g.rows %}
-                    <tr>
+                    <tr {% if row.status == 'Hold' %} class="table-warning" {% endif %}>
                         <td>{{ row.job_number }}</td>
-                        <td>{{ row.job_priority }}</td>
-                        <td>{{ row.hold_status }}</td>
+                        <td>{{ row.priority }}</td>
+                        <td>{{ row.status }}</td>
                         <td>{{ row.parent_job_number }}</td>
                         <td>{{ row.part_number }}</td>
                         <td>{{ row.part_description }}</td>
@@ -61,7 +61,9 @@
                         <td>{{ row.quantity_open|int }}</td>
                         <td>{{ row.customer_code }}</td>
                         <td>{{ row.customer_po or '' }}</td>
-                        <td class="text-end">$&nbsp;{{ '{:,.2f}'.format(row.sales_amount) }}</td>
+                        <td class="text-end">
+                            {% if row.sales_amount %}$&nbsp;{{ '{:,.2f}'.format(row.sales_amount) }}{% endif %}
+                        </td>
                         <td>{{ row.order_date }}</td>
                         <td>{{ row.ship_by_date }}</td>
                         <td>{{ row.scheduled_end_date or '' }}</td>
