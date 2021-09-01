@@ -105,7 +105,7 @@ class E2Database:
             left join schedule_job sj on sj.order_detail_id = od.order_detail_id and sj.schedule_header_id = 50
             left join jpo on jpo.job_number = od.job_number
             where od.company_code = 'spmtech'
-            and od.status in ('hold', 'in process', 'released')
+            and od.status in ('firm', 'hold', 'in process', 'released')
             order by od.priority
         '''
         return self.q(sql)
