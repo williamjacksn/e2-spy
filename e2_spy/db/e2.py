@@ -95,7 +95,7 @@ class E2Database:
                 coalesce(sj.sales_amount, od.gross_amount) sales_amount,
                 coalesce(format(oh.order_date, 'yyyy-MM-dd'), '') order_date,
                 coalesce(format(od.projected_ship_date, 'yyyy-MM-dd'), '') ship_by_date,
-                coalesce(format(coalesce(sj.scheduled_end_date, oh.due_date), 'yyyy-MM-dd'), '') scheduled_end_date,
+                coalesce(format(sj.scheduled_end_date, 'yyyy-MM-dd'), '') scheduled_end_date,
                 jpo.vendor,
                 jpo.vendor_po,
                 jpo.po_date,
