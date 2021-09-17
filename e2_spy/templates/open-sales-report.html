@@ -27,6 +27,7 @@
                     <tr>
                         <th class="bg-dark position-sticky text-light top-0">Job Number</th>
                         <th class="bg-dark position-sticky text-light top-0">Priority</th>
+                        <th class="bg-dark position-sticky text-light top-0">Order Type</th>
                         <th class="bg-dark position-sticky text-light top-0">Status</th>
                         <th class="bg-dark position-sticky text-light top-0">Parent Job Number</th>
                         <th class="bg-dark position-sticky text-light top-0">Part Number</th>
@@ -52,6 +53,7 @@
                     <tr {% if row.status == 'Hold' %} class="table-warning" {% endif %}>
                         <td>{{ row.job_number }}</td>
                         <td>{{ row.priority }}</td>
+                        <td>{{ row.order_type }}</td>
                         <td>{{ row.status }}</td>
                         <td>{{ row.parent_job_number }}</td>
                         <td>{{ row.part_number }}</td>
