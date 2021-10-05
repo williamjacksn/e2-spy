@@ -1,5 +1,6 @@
 import config
 import contextlib
+import datetime
 import flask
 import io
 import logging
@@ -15,6 +16,10 @@ log = logging.getLogger(__name__)
 
 logging.basicConfig(filename=str(config.APP_LOG), format='%(asctime)s %(levelname)s [%(name)s] %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
+
+
+def str_to_date(s: str) -> datetime.date:
+    return datetime.datetime.strptime(s, '%Y-%m-%d').date()
 
 
 def get_database():
@@ -57,6 +62,34 @@ def index():
     if flask.g.db.e2_database_configured:
         return flask.render_template('index.html')
     return flask.redirect(flask.url_for('settings'))
+
+
+@app.get('/action-summary')
+def action_summary():
+    e2db = get_e2_database(flask.g.db)
+    try:
+        start_date = str_to_date(flask.request.values.get('start_date'))
+    except (TypeError, ValueError):
+        start_date = None
+    try:
+        end_date = str_to_date(flask.request.values.get('end_date'))
+    except (TypeError, ValueError):
+        end_date = None
+    if start_date is None:
+        if end_date is None:
+            start_date = datetime.date.today().replace(day=1)
+            end_date = datetime.date.today()
+        else:
+            start_date = end_date + datetime.timedelta(days=-30)
+    else:
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=30)
+        elif start_date > end_date:
+            start_date, end_date = end_date, start_date
+    flask.g.start_date = start_date
+    flask.g.end_date = end_date
+    flask.g.rows = e2db.action_summary(start_date, end_date)
+    return flask.render_template('action-summary.html')
 
 
 @app.post('/job-notes')

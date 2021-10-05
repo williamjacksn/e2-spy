@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% set title = 'Action Summary' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <form>
+                <div class="g-1 row">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">date entered between</span>
+                            <input aria-label="Start date" class="form-control" name="start_date" type="date"
+                                   value="{{ g.start_date }}">
+                            <span class="input-group-text">and</span>
+                            <input aria-label="End date" class="form-control" name="end_date" type="date"
+                                   value="{{ g.end_date }}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-success" type="submit">Go</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Order Number</th>
+                    <th>Action Code</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th>Follow Up By</th>
+                    <th>Date Entered</th>
+                    <th>Date Completed</th>
+                    <th>Days To Complete</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.order_number }}</td>
+                        <td>{{ row.action_code }}</td>
+                        <td>{{ row.description }}</td>
+                        <td>{{ row.status }}</td>
+                        <td>{{ row.notes or '' }}</td>
+                        <td>{{ row.followup_by_user_code }}</td>
+                        <td>{{ row.entered_date.date() }}</td>
+                        <td>{% if row.completed_date %}{{ row.completed_date.date() }}{% endif %}</td>
+                        <td>{{ row.business_days_to_complete if row.business_days_to_complete is integer }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,4 +1,5 @@
 import contextlib
+import datetime
 import pymssql
 
 
@@ -12,6 +13,27 @@ class E2Database:
         with contextlib.closing(self.cnx.cursor()) as cur:
             cur.execute(sql, params)
             return cur.fetchall()
+
+    def action_summary(self, start_date: datetime.date, end_date: datetime.date):
+        sql = '''
+            select
+                a.action_code, a.action_id, a.completed_date,
+                datediff(day, a.entered_date, a.completed_date) days_to_complete, a.description, a.entered_date,
+                a.followup_by_user_code, a.followup_completed, a.notes, o.order_number, a.status,
+                (datediff(day, a.entered_date, a.completed_date) + 1) -
+                (datediff(wk, a.entered_date, a.completed_date) * 2) -
+                (case when datename(dw, a.entered_date) = 'Sunday' then 1 else 0 end) -
+                (case when datename(dw, a.completed_date) = 'Saturday' then 1 else 0 end) business_days_to_complete
+            from action a
+            left join order_header o on o.order_header_id = a.order_header_id
+            where a.order_header_id is not null
+            and a.entered_date between %s and %s
+        '''
+        params = (
+            start_date,
+            end_date + datetime.timedelta(days=1),
+        )
+        return self.q(sql, params)
 
     def get_departments_list(self) -> list[str]:
         sql = '''
