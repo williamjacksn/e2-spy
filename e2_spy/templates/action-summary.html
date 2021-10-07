@@ -26,6 +26,23 @@
                         </div>
                     </div>
                     <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-auto-close="outside"
+                                    data-bs-toggle="dropdown" type="button">
+                                Users
+                            </button>
+                            <div class="dropdown-menu p-2">
+                            {% for u in g.available_users %}
+                                <div class="form-check">
+                                    <input class="form-check-input" id="check-{{ u | lower }}" name="users"
+                                            type="checkbox" value="{{ u }}" {{ 'checked' if u in g.selected_users }}>
+                                    <label class="form-check-label" for="check-{{ u | lower }}">{{ u }}</label>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
                         <button class="btn btn-success" type="submit">Go</button>
                     </div>
                 </div>

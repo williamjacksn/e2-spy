@@ -88,7 +88,9 @@ def action_summary():
             start_date, end_date = end_date, start_date
     flask.g.start_date = start_date
     flask.g.end_date = end_date
-    flask.g.rows = e2db.action_summary(start_date, end_date)
+    flask.g.selected_users = flask.request.values.getlist('users')
+    flask.g.rows = e2db.action_summary(start_date, end_date, flask.g.selected_users)
+    flask.g.available_users = e2db.get_followup_user_code_list()
     return flask.render_template('action-summary.html')
 
 

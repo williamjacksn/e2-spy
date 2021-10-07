@@ -14,7 +14,7 @@ class E2Database:
             cur.execute(sql, params)
             return cur.fetchall()
 
-    def action_summary(self, start_date: datetime.date, end_date: datetime.date):
+    def action_summary(self, start_date: datetime.date, end_date: datetime.date, users: list[str]):
         sql = '''
             select
                 a.action_code, a.action_id, a.completed_date,
@@ -29,11 +29,25 @@ class E2Database:
             where a.order_header_id is not null
             and a.entered_date between %s and %s
         '''
+        if users:
+            sql = f'''{sql}
+            and a.followup_by_user_code in %s
+            '''
         params = (
             start_date,
             end_date + datetime.timedelta(days=1),
+            users,
         )
         return self.q(sql, params)
+
+    def get_followup_user_code_list(self) -> list[str]:
+        sql = '''
+            select distinct followup_by_user_code
+            from action
+            where len(followup_by_user_code) > 0
+            order by followup_by_user_code
+        '''
+        return [row.get('followup_by_user_code') for row in self.q(sql)]
 
     def get_departments_list(self) -> list[str]:
         sql = '''
