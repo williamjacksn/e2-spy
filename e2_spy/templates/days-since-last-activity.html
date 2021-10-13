@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% set title = 'Days Since Last Activity' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Job Number</th>
+                    <th>Part Number</th>
+                    <th>Current Step</th>
+                    <th>Actual Start Date</th>
+                    <th>Actual End Date</th>
+                    <th>Days Since Last Activity</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.job_number }}</td>
+                        <td>{{ row.part_number }}</td>
+                        <td>{{ row.current_step }}</td>
+                        <td>{{ row.actual_start_date.date() if row.actual_start_date }}</td>
+                        <td>{{ row.actual_end_date.date() if row.actual_end_date }}</td>
+                        <td>{{ row.days_since_last_activity if row.days_since_last_activity is integer }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

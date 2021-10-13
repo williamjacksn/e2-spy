@@ -40,6 +40,26 @@ class E2Database:
         )
         return self.q(sql, params)
 
+    def days_since_last_activity(self):
+        sql = '''
+            select
+                job_number, part_number, current_step, actual_start_date, actual_end_date,
+                datediff(
+                    day, (select max(v) from (values (actual_start_date), (actual_end_date)) as value(v)), sysdatetime()
+                ) as days_since_last_activity
+            from (
+                select
+                    job_number, part_number, coalesce(work_center, vendor_code) current_step, actual_start_date,
+                    actual_end_date,
+                    row_number() over (partition by job_number order by item_number) z
+                from schedule_detail
+                where schedule_header_id = 50
+                and step_status in ('current', 'pending')
+            ) c
+            where z = 1
+        '''
+        return self.q(sql)
+
     def get_followup_user_code_list(self) -> list[str]:
         sql = '''
             select distinct followup_by_user_code

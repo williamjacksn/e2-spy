@@ -94,6 +94,13 @@ def action_summary():
     return flask.render_template('action-summary.html')
 
 
+@app.get('/days-since-last-activity')
+def days_since_last_activity():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.days_since_last_activity()
+    return flask.render_template('days-since-last-activity.html')
+
+
 @app.post('/job-notes')
 def job_notes():
     for k, v in flask.request.values.lists():
