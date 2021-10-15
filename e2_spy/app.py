@@ -98,6 +98,7 @@ def action_summary():
 def days_since_last_activity():
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.days_since_last_activity()
+    flask.g.job_notes = flask.g.db.job_notes_list()
     return flask.render_template('days-since-last-activity.html')
 
 
@@ -105,16 +106,18 @@ def days_since_last_activity():
 def days_since_last_activity_xlsx():
     e2db = get_e2_database(flask.g.db)
     rows = e2db.days_since_last_activity()
+    notes = flask.g.db.job_notes_list()
     output = io.BytesIO()
     workbook_options = {
         'default_date_format': 'yyyy-mm-dd',
         'in_memory': True,
     }
     workbook = xlsxwriter.Workbook(output, workbook_options)
+    text_wrap = workbook.add_format({'text_wrap': True})
     worksheet = workbook.add_worksheet()
     headers = [
         'Job Number', 'Part Number', 'Current Step', 'Next Step', 'Actual Start Date', 'Actual End Date',
-        'Days Since Last Activity'
+        'Days Since Last Activity', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
     worksheet.write_row(0, 0, headers)
@@ -133,6 +136,8 @@ def days_since_last_activity_xlsx():
         col_widths[5] = max(col_widths[5], len(str(row['actual_end_date'])))
         worksheet.write(i, 6, row['days_since_last_activity'])
         col_widths[6] = max(col_widths[6], len(str(row['days_since_last_activity'])))
+        worksheet.write_string(i, 7, notes.get(row['job_number'], ''), text_wrap)
+        col_widths[7] = 40  # 40 is a good width for 'Job Notes'
     for i, width in enumerate(col_widths):
         worksheet.set_column(i, i, width)
     worksheet.freeze_panes(1, 0)

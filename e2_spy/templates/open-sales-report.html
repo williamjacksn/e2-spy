@@ -76,7 +76,7 @@
                         <td>{{ (g.job_notes.get(row.job_number) or '') | replace('\n', '<br>' | safe) }}</td>
                         <td>
                             <a class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                               data-job-number="{{ row.job_number }}"
+                               data-job-number="{{ row.job_number }}" data-next-view="open_sales_report"
                                data-notes="{{ g.job_notes.get(row.job_number) or '' }}" href="#modal-job-notes">
                                 <i class="bi-pencil-fill"></i>
                             </a>
@@ -88,31 +88,9 @@
         </div>
     </div>
 
-    <div class="modal" id="modal-job-notes">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><span id="job-number"></span> Job Notes</h5>
-                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{ url_for('job_notes') }}" method="post" id="form-job-notes">
-                        <input name="job_number" type="hidden">
-                        <input name="next_view" type="hidden" value="open_sales_report">
-                        <div class="mb-3">
-                            <textarea aria-label="Job notes" class="form-control" name="notes" rows="10"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="justify-content-between modal-footer">
-                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
-                    <button class="btn btn-outline-success" form="form-job-notes" type="submit">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'includes/modal-job-notes.html' %}
 {% endblock %}
 
 {% block end_of_body %}
-    <script src="{{ url_for('static', filename='open-sales-report.js') }}"></script>
+    <script src="{{ url_for('static', filename='modal-job-notes.js') }}"></script>
 {% endblock %}

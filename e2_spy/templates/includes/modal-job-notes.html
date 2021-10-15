@@ -1,0 +1,23 @@
+<div class="modal" id="modal-job-notes">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span id="job-number"></span> Job Notes</h5>
+                <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('job_notes') }}" method="post" id="form-job-notes">
+                    <input name="job_number" type="hidden">
+                    <input name="next_view" type="hidden">
+                    <div class="mb-3">
+                        <textarea aria-label="Job notes" class="form-control" name="notes" rows="10"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="justify-content-between modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+                <button class="btn btn-outline-success" form="form-job-notes" type="submit">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
