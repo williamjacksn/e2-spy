@@ -101,6 +101,51 @@ def days_since_last_activity():
     return flask.render_template('days-since-last-activity.html')
 
 
+@app.get('/days-since-last-activity.xlsx')
+def days_since_last_activity_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.days_since_last_activity()
+    output = io.BytesIO()
+    workbook_options = {
+        'default_date_format': 'yyyy-mm-dd',
+        'in_memory': True,
+    }
+    workbook = xlsxwriter.Workbook(output, workbook_options)
+    worksheet = workbook.add_worksheet()
+    headers = [
+        'Job Number', 'Part Number', 'Current Step', 'Next Step', 'Actual Start Date', 'Actual End Date',
+        'Days Since Last Activity'
+    ]
+    col_widths = [len(v) for v in headers]
+    worksheet.write_row(0, 0, headers)
+    for i, row in enumerate(rows, start=1):
+        worksheet.write(i, 0, row['job_number'])
+        col_widths[0] = max(14, len(row['job_number']))  # 14 is a good width for 'Job Number'
+        worksheet.write(i, 1, row['part_number'])
+        col_widths[1] = max(col_widths[1], len(row['part_number']))
+        worksheet.write(i, 2, row['current_step'])
+        col_widths[2] = max(col_widths[2], len(row['current_step']))
+        worksheet.write(i, 3, row['next_step'])
+        col_widths[3] = max(col_widths[3], len(row['next_step']))
+        worksheet.write(i, 4, row['actual_start_date'])
+        col_widths[4] = max(col_widths[4], len(str(row['actual_start_date'])))
+        worksheet.write(i, 5, row['actual_end_date'])
+        col_widths[5] = max(col_widths[5], len(str(row['actual_end_date'])))
+        worksheet.write(i, 6, row['days_since_last_activity'])
+        col_widths[6] = max(col_widths[6], len(str(row['days_since_last_activity'])))
+    for i, width in enumerate(col_widths):
+        worksheet.set_column(i, i, width)
+    worksheet.freeze_panes(1, 0)
+    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    workbook.close()
+    response = flask.make_response(output.getvalue())
+    response.headers.update({
+        'Content-Disposition': 'attachment; filename="Days Since Last Activity.xlsx"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    return response
+
+
 @app.post('/job-notes')
 def job_notes():
     for k, v in flask.request.values.lists():
