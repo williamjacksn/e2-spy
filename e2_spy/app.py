@@ -116,8 +116,8 @@ def days_since_last_activity_xlsx():
     text_wrap = workbook.add_format({'text_wrap': True})
     worksheet = workbook.add_worksheet()
     headers = [
-        'Job Number', 'Part Number', 'Current Step', 'Next Step', 'Actual Start Date', 'Actual End Date',
-        'Days Since Last Activity', 'Job Notes'
+        'Job Number', 'Part Number', 'Part Description', 'Current Step', 'Next Step', 'Actual Start Date',
+        'Actual End Date', 'Days Since Last Activity', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
     worksheet.write_row(0, 0, headers)
@@ -126,18 +126,20 @@ def days_since_last_activity_xlsx():
         col_widths[0] = max(14, len(row['job_number']))  # 14 is a good width for 'Job Number'
         worksheet.write(i, 1, row['part_number'])
         col_widths[1] = max(col_widths[1], len(row['part_number']))
-        worksheet.write(i, 2, row['current_step'])
-        col_widths[2] = max(col_widths[2], len(row['current_step']))
-        worksheet.write(i, 3, row['next_step'])
-        col_widths[3] = max(col_widths[3], len(row['next_step']))
-        worksheet.write(i, 4, row['actual_start_date'])
-        col_widths[4] = max(col_widths[4], len(str(row['actual_start_date'])))
-        worksheet.write(i, 5, row['actual_end_date'])
-        col_widths[5] = max(col_widths[5], len(str(row['actual_end_date'])))
-        worksheet.write(i, 6, row['days_since_last_activity'])
-        col_widths[6] = max(col_widths[6], len(str(row['days_since_last_activity'])))
-        worksheet.write_string(i, 7, notes.get(row['job_number'], ''), text_wrap)
-        col_widths[7] = 40  # 40 is a good width for 'Job Notes'
+        worksheet.write_string(i, 2, row['part_description'])
+        col_widths[2] = max(col_widths[2], len(row['part_description']))
+        worksheet.write(i, 3, row['current_step'])
+        col_widths[3] = max(col_widths[3], len(row['current_step']))
+        worksheet.write(i, 4, row['next_step'])
+        col_widths[4] = max(col_widths[4], len(row['next_step']))
+        worksheet.write(i, 5, row['actual_start_date'])
+        col_widths[5] = max(col_widths[5], len(str(row['actual_start_date'])))
+        worksheet.write(i, 6, row['actual_end_date'])
+        col_widths[6] = max(col_widths[6], len(str(row['actual_end_date'])))
+        worksheet.write(i, 7, row['days_since_last_activity'])
+        col_widths[7] = max(col_widths[7], len(str(row['days_since_last_activity'])))
+        worksheet.write_string(i, 8, notes.get(row['job_number'], ''), text_wrap)
+        col_widths[8] = 40  # 40 is a good width for 'Job Notes'
     for i, width in enumerate(col_widths):
         worksheet.set_column(i, i, width)
     worksheet.freeze_panes(1, 0)

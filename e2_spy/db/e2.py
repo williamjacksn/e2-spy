@@ -43,7 +43,7 @@ class E2Database:
     def days_since_last_activity(self):
         sql = '''
             select
-                c.job_number, c.part_number, c.current_step,
+                c.job_number, c.part_number, c.part_description, c.current_step,
                 coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step, c.actual_start_date, c.actual_end_date,
                 datediff(
                     day, (select max(v) from (values (c.actual_start_date), (c.actual_end_date)) as value(v)),
@@ -51,8 +51,8 @@ class E2Database:
                 ) as days_since_last_activity
             from (
                 select
-                    job_number, part_number, coalesce(work_center, vendor_code) current_step, actual_start_date,
-                    actual_end_date, item_number,
+                    job_number, part_number, part_description, coalesce(work_center, vendor_code) current_step,
+                    actual_start_date, actual_end_date, item_number,
                     row_number() over (partition by job_number order by item_number) z
                 from schedule_detail
                 where schedule_header_id = 50

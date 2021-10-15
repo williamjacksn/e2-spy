@@ -27,6 +27,7 @@
                 <tr>
                     <th>Job Number</th>
                     <th>Part Number</th>
+                    <th>Part Description</th>
                     <th>Current Step</th>
                     <th>Next Step</th>
                     <th>Actual Start Date</th>
@@ -40,6 +41,7 @@
                     <tr>
                         <td>{{ row.job_number }}</td>
                         <td>{{ row.part_number }}</td>
+                        <td>{{ row.part_description }}</td>
                         <td>{{ row.current_step }}</td>
                         <td>{{ row.next_step }}</td>
                         <td>{{ row.actual_start_date.date() if row.actual_start_date }}</td>
