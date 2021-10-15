@@ -43,19 +43,23 @@ class E2Database:
     def days_since_last_activity(self):
         sql = '''
             select
-                job_number, part_number, current_step, actual_start_date, actual_end_date,
+                c.job_number, c.part_number, c.current_step,
+                coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step, c.actual_start_date, c.actual_end_date,
                 datediff(
-                    day, (select max(v) from (values (actual_start_date), (actual_end_date)) as value(v)), sysdatetime()
+                    day, (select max(v) from (values (c.actual_start_date), (c.actual_end_date)) as value(v)),
+                    sysdatetime()
                 ) as days_since_last_activity
             from (
                 select
                     job_number, part_number, coalesce(work_center, vendor_code) current_step, actual_start_date,
-                    actual_end_date,
+                    actual_end_date, item_number,
                     row_number() over (partition by job_number order by item_number) z
                 from schedule_detail
                 where schedule_header_id = 50
                 and step_status in ('current', 'pending')
             ) c
+            left join schedule_detail ns on
+                ns.schedule_header_id = 50 and ns.job_number = c.job_number and ns.item_number = c.item_number + 1
             where z = 1
         '''
         return self.q(sql)
