@@ -61,6 +61,7 @@ class E2Database:
             left join schedule_detail ns on
                 ns.schedule_header_id = 50 and ns.job_number = c.job_number and ns.item_number = c.item_number + 1
             where z = 1
+            order by days_since_last_activity desc
         '''
         return self.q(sql)
 
