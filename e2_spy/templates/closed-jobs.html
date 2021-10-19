@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% set title = 'Closed Jobs' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Job Number</th>
+                    <th>Part Number</th>
+                    <th>Part Description</th>
+                    <th>Order Number</th>
+                    <th>Customer Code</th>
+                    <th>Customer PO Number</th>
+                    <th>Date Closed</th>
+                    <th colspan="2">Job Notes</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.job_number }}</td>
+                        <td>{{ row.part_number }}</td>
+                        <td>{{ row.part_description }}</td>
+                        <td>{{ row.order_number }}</td>
+                        <td>{{ row.customer_code }}</td>
+                        <td>{{ row.customer_po_number or '' }}</td>
+                        <td>{{ row.date_closed.date() }}</td>
+                        <td>{{ (g.job_notes.get(row.job_number) or '') | replace('\n', '<br>' | safe) }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                               data-job-number="{{ row.job_number }}" data-next-view="closed_jobs"
+                               data-notes="{{ g.job_notes.get(row.job_number) or '' }}" href="#modal-job-notes">
+                                <i class="bi-pencil-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% include 'includes/modal-job-notes.html' %}
+
+{% endblock %}
+
+{% block end_of_body %}
+    <script src="{{ url_for('static', filename='modal-job-notes.js') }}"></script>
+{% endblock %}

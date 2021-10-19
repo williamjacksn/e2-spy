@@ -94,6 +94,14 @@ def action_summary():
     return flask.render_template('action-summary.html')
 
 
+@app.get('/closed-jobs')
+def closed_jobs():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.closed_jobs()
+    flask.g.job_notes = flask.g.db.job_notes_list()
+    return flask.render_template('closed-jobs.html')
+
+
 @app.get('/days-since-last-activity')
 def days_since_last_activity():
     e2db = get_e2_database(flask.g.db)

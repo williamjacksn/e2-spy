@@ -40,6 +40,19 @@ class E2Database:
         )
         return self.q(sql, params)
 
+    def closed_jobs(self):
+        sql = '''
+            select
+                oh.customer_code, oh.customer_po_number, od.date_closed, od.job_number, oh.order_number,
+                od.part_description, od.part_number
+            from order_detail od
+            left join order_header oh on oh.order_header_id = od.order_header_id
+            where oh.company_code = 'spmtech'
+            and od.status = 'closed'
+            order by od.date_closed desc
+        '''
+        return self.q(sql)
+
     def days_since_last_activity(self):
         sql = '''
             select
