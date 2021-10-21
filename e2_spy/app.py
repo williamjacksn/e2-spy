@@ -102,6 +102,52 @@ def closed_jobs():
     return flask.render_template('closed-jobs.html')
 
 
+@app.get('/closed-jobs.xlsx')
+def closed_jobs_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.closed_jobs()
+    notes = flask.g.db.job_notes_list()
+    output = io.BytesIO()
+    workbook_options = {
+        'default_date_format': 'yyyy-mm-dd',
+        'in_memory': True,
+    }
+    workbook = xlsxwriter.Workbook(output, workbook_options)
+    text_wrap = workbook.add_format({'text_wrap': True})
+    worksheet = workbook.add_worksheet()
+    headers = [
+        'Job Number', 'Part Number', 'Part Description', 'Order Number', 'Customer Code', 'Customer PO Number',
+        'Date Closed', 'Job Notes'
+    ]
+    col_widths = [len(v) for v in headers]
+    worksheet.write_row(0, 0, headers)
+    col_names = [
+        'job_number', 'part_number', 'part_description', 'order_number', 'customer_code', 'customer_po_number',
+        'date_closed', 'job_notes'
+    ]
+    for i, row in enumerate(rows, start=1):
+        for j, col_name in enumerate(col_names):
+            if col_name == 'job_notes':
+                col_data = notes.get(row['job_number'], '')
+                col_widths[j] = 40
+                worksheet.write_string(i, j, col_data, text_wrap)
+            else:
+                col_data = row[col_name]
+                col_widths[j] = max(col_widths[j], len(str(col_data)))
+                worksheet.write(i, j, col_data)
+    for i, width in enumerate(col_widths):
+        worksheet.set_column(i, i, width)
+    worksheet.freeze_panes(1, 0)
+    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    workbook.close()
+    response = flask.make_response(output.getvalue())
+    response.headers.update({
+        'Content-Disposition': 'attachment; filename="Closed Jobs.xlsx"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    return response
+
+
 @app.get('/days-since-last-activity')
 def days_since_last_activity():
     e2db = get_e2_database(flask.g.db)
