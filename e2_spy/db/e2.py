@@ -124,6 +124,26 @@ class E2Database:
         )
         return self.q(sql, params)
 
+    def jobs_closed_last_week(self):
+        sql = '''
+            select
+                cast(date_closed as date) date_closed, job_number, part_description, part_number,
+                cast(
+                    case
+                        when total_estimated_hours > 0 then total_actual_hours / total_estimated_hours * 100
+                        else 0
+                    end
+                    as int) performance, total_actual_hours, total_estimated_hours
+            from order_detail
+            where company_code = 'spmtech'
+            and status = 'closed'
+            and date_closed between
+                dateadd(day, 1 - datepart(dw, getdate()) - 7, cast(getdate() as date)) and
+                dateadd(day, 1 - datepart(dw, getdate()), cast(getdate() as date))
+            order by date_closed desc
+        '''
+        return self.q(sql)
+
     def open_sales_report(self):
         sql = '''
             with jpo as (

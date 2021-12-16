@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% set title = 'Jobs Closed Last Week' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    {#
+    <div class="pt-3 row">
+        <div class="col">
+            <a class="btn btn-outline-success" href="{{ url_for('jobs_closed_last_week_xlsx') }}">
+                <i class="bi-file-earmark-spreadsheet"></i>
+                Export
+            </a>
+        </div>
+    </div>
+    #}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Job Number</th>
+                    <th>Part Number</th>
+                    <th>Part Description</th>
+                    <th>Date Closed</th>
+                    <th>Estimated Hours</th>
+                    <th>Actual Hours</th>
+                    <th>Performance</th>
+                    <th colspan="2">Job Notes</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.job_number }}</td>
+                        <td>{{ row.part_number }}</td>
+                        <td>{{ row.part_description }}</td>
+                        <td>{{ row.date_closed }}</td>
+                        <td>{{ '{:,.2f}'.format(row.total_estimated_hours) }}</td>
+                        <td>{{ '{:,.2f}'.format(row.total_actual_hours) }}</td>
+                        <td {% if row.performance > 100 %}class="table-danger"{% endif %}>{{ row.performance }}%</td>
+                        <td>{{ (g.job_notes.get(row.job_number) or '') | replace('\n', '<br>' | safe) }}</td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                               data-job-number="{{ row.job_number }}" data-next-view="jobs_closed_last_week"
+                               data-notes="{{ g.job_notes.get(row.job_number) or '' }}" href="#modal-job-notes">
+                                <i class="bi-pencil-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% include 'includes/modal-job-notes.html' %}
+
+{% endblock %}
+
+{% block end_of_body %}
+    <script src="{{ url_for('static', filename='modal-job-notes.js') }}"></script>
+{% endblock %}

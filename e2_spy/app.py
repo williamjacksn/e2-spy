@@ -94,6 +94,19 @@ def action_summary():
     return flask.render_template('action-summary.html')
 
 
+@app.get('/jobs-closed-last-week')
+def jobs_closed_last_week():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.jobs_closed_last_week()
+    flask.g.job_notes = flask.g.db.job_notes_list()
+    return flask.render_template('jobs-closed-last-week.html')
+
+
+@app.get('/jobs-closed-last-week.xlsx')
+def jobs_closed_last_week_xlsx():
+    return 'ok'
+
+
 @app.get('/closed-jobs')
 def closed_jobs():
     e2db = get_e2_database(flask.g.db)
