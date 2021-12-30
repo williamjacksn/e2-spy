@@ -124,7 +124,7 @@ class E2Database:
         )
         return self.q(sql, params)
 
-    def jobs_closed_last_week(self):
+    def job_performance(self, start_date: datetime.date, end_date: datetime.date):
         sql = '''
             select
                 cast(date_closed as date) date_closed, job_number, part_description, part_number,
@@ -137,12 +137,14 @@ class E2Database:
             from order_detail
             where company_code = 'spmtech'
             and status = 'closed'
-            and date_closed between
-                dateadd(day, 1 - datepart(dw, getdate()) - 7, cast(getdate() as date)) and
-                dateadd(day, 1 - datepart(dw, getdate()), cast(getdate() as date))
+            and cast(date_closed as date) between %s and %s
             order by date_closed desc
         '''
-        return self.q(sql)
+        params = (
+            start_date,
+            end_date,
+        )
+        return self.q(sql, params)
 
     def open_sales_report(self):
         sql = '''

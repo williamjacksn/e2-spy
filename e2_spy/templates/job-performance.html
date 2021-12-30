@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% set title = 'Jobs Closed Last Week' %}
+{% set title = 'Job Performance' %}
 
 {% block title %}{{ super() }} / {{ title }}{% endblock %}
 
@@ -13,10 +13,31 @@
 
     <div class="pt-3 row">
         <div class="col">
-            <a class="btn btn-outline-success" href="{{ url_for('jobs_closed_last_week_xlsx') }}">
-                <i class="bi-file-earmark-spreadsheet"></i>
-                Export
-            </a>
+            <form class="g-1 row">
+                <div class="col-auto">
+                    <div class="input-group">
+                        <span class="input-group-text">date closed between</span>
+                        <input aria-label="Start date" class="form-control" name="start_date" type="date"
+                                value="{{ g.start_date }}">
+                        <span class="input-group-text">and</span>
+                        <input aria-label="End date" class="form-control" name="end_date" type="date"
+                                value="{{ g.end_date }}">
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" type="submit">
+                        <i class="bi-arrow-clockwise"></i>
+                        Apply
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" formaction="{{ url_for('job_performance_xlsx') }}"
+                            type="submit">
+                        <i class="bi-file-earmark-spreadsheet"></i>
+                        Export
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -48,7 +69,7 @@
                         <td>{{ (g.job_notes.get(row.job_number) or '') | replace('\n', '<br>' | safe) }}</td>
                         <td>
                             <a class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                               data-job-number="{{ row.job_number }}" data-next-view="jobs_closed_last_week"
+                               data-job-number="{{ row.job_number }}" data-next-view="job_performance"
                                data-notes="{{ g.job_notes.get(row.job_number) or '' }}" href="#modal-job-notes">
                                 <i class="bi-pencil-fill"></i>
                             </a>

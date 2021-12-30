@@ -94,18 +94,41 @@ def action_summary():
     return flask.render_template('action-summary.html')
 
 
-@app.get('/jobs-closed-last-week')
-def jobs_closed_last_week():
+@app.get('/job-performance')
+def job_performance():
     e2db = get_e2_database(flask.g.db)
-    flask.g.rows = e2db.jobs_closed_last_week()
+    try:
+        start_date = str_to_date(flask.request.values.get('start_date'))
+    except (TypeError, ValueError):
+        start_date = None
+    try:
+        end_date = str_to_date(flask.request.values.get('end_date'))
+    except (TypeError, ValueError):
+        end_date = None
+    if start_date is None:
+        if end_date is None:
+            start_date = datetime.date.today() - datetime.timedelta(days=7)
+            end_date = datetime.date.today()
+        else:
+            start_date = end_date + datetime.timedelta(days=-7)
+    else:
+        if end_date is None:
+            end_date = start_date + datetime.timedelta(days=7)
+        elif start_date > end_date:
+            start_date, end_date = end_date, start_date
+    flask.g.start_date = start_date
+    flask.g.end_date = end_date
+    flask.g.rows = e2db.job_performance(start_date, end_date)
     flask.g.job_notes = flask.g.db.job_notes_list()
-    return flask.render_template('jobs-closed-last-week.html')
+    return flask.render_template('job-performance.html')
 
 
-@app.get('/jobs-closed-last-week.xlsx')
-def jobs_closed_last_week_xlsx():
+@app.get('/job-performance.xlsx')
+def job_performance_xlsx():
     e2db = get_e2_database(flask.g.db)
-    rows = e2db.jobs_closed_last_week()
+    start_date = str_to_date(flask.request.values.get('start_date'))
+    end_date = str_to_date(flask.request.values.get('end_date'))
+    rows = e2db.job_performance(start_date, end_date)
     notes = flask.g.db.job_notes_list()
     output = io.BytesIO()
     workbook_options = {
@@ -142,7 +165,7 @@ def jobs_closed_last_week_xlsx():
     workbook.close()
     response = flask.make_response(output.getvalue())
     response.headers.update({
-        'Content-Disposition': 'attachment; filename="Jobs Closed Last Week.xlsx"',
+        'Content-Disposition': f'attachment; filename="Job Performance ({start_date} to {end_date}).xlsx"',
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     })
     return response
