@@ -132,6 +132,16 @@ class E2Database:
         '''
         return self.q(sql)
 
+    def income_statement(self):
+        sql = '''
+            select a.gl_account_id, a.active, b.period_number, b.amount, a.description, a.gl_group_code, a.account_type
+            from gl_balance b
+            join gl_account a on a.gl_account_id = b.gl_account_id
+            where b.period_number = '202201'
+            order by a.gl_account
+        '''
+        return self.q(sql)
+    
     def job_performance(self, start_date: datetime.date, end_date: datetime.date):
         sql = '''
             select
