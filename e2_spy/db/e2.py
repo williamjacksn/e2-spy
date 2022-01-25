@@ -124,6 +124,14 @@ class E2Database:
         )
         return self.q(sql, params)
 
+    def gl_accounts_list(self):
+        sql = '''
+            select gl_account, description, gl_group_code, account_type
+            from gl_account
+            where company_code = 'spmtech'
+        '''
+        return self.q(sql)
+
     def job_performance(self, start_date: datetime.date, end_date: datetime.date):
         sql = '''
             select
