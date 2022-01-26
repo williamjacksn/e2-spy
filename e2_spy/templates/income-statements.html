@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% set title = 'Income Statements' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <form class="g-1 row">
+                <div class="col-auto">
+                    <select class="form-select" name="department">
+                    {% for id, name in [
+                        ('accounting', 'Accounting'),
+                        ('manufacturing', 'Manufacturing'),
+                        ('processing', 'Processing'),
+                        ('quality', 'Quality'),
+                        ('sales', 'Sales'),
+                        ('shop', 'Shop'),
+                    ] %}
+                        <option value="{{ id }}" {{ 'selected' if id == g.department }}>{{ name }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" type="submit">
+                        <i class="bi-arrow-clockwise"></i>
+                        Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="d-block table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>GL Code</th>
+                    <th>Account Description</th>
+                    <th>Account Type</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.gl_account }}</td>
+                        <td>{{ row.description }}</td>
+                        <td>{{ row.account_type }}</td>
+                        <td class="text-end">{{ '{:,.2f}'.format(row.amount) }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3">Revenue Total</th>
+                        <th class="text-end">{{ '{:,.2f}'.format(g.revenue_total) }}</th>
+                    </tr>
+                    <tr>
+                        <th colspan="3">Expense Total</th>
+                        <th class="text-end">{{ '{:,.2f}'.format(g.expense_total) }}</th>
+                    </tr>
+                    <tr>
+                        <th colspan="3">Grand Total</th>
+                        <th class="text-end">{{ '{:,.2f}'.format(g.total) }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+{% endblock %}

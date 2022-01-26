@@ -94,6 +94,20 @@ def action_summary():
     return flask.render_template('action-summary.html')
 
 
+@app.get('/income-statements')
+def income_statements_shop():
+    flask.g.department = flask.request.values.get('department', 'shop')
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.income_statement(flask.g.department)
+    flask.g.total = sum([row.get('amount') for row in flask.g.rows])
+    flask.g.revenue_total = sum([row.get('amount') for row in flask.g.rows if row.get('gl_group_code') in ('40',)])
+    flask.g.expense_total = sum([
+        row.get('amount') for row in flask.g.rows
+        if row.get('gl_group_code') in ('50', '70', '80')
+    ])
+    return flask.render_template('income-statements.html')
+
+
 @app.get('/job-performance')
 def job_performance():
     e2db = get_e2_database(flask.g.db)

@@ -132,16 +132,25 @@ class E2Database:
         '''
         return self.q(sql)
 
-    def income_statement(self):
+    def income_statement(self, department: str):
+        department_patterns = {
+            'shop': '%.1%',
+            'processing': '%.2%',
+            'manufacturing': '%.6%',
+            'quality': '%.7%',
+            'sales': '%.8%',
+            'accounting': '%.9%',
+        }
         sql = '''
-            select a.gl_account_id, a.active, b.period_number, b.amount, a.description, a.gl_group_code, a.account_type
+            select a.gl_account_id, a.gl_account, a.active, b.period_number, b.amount, a.description, a.gl_group_code, a.account_type
             from gl_balance b
             join gl_account a on a.gl_account_id = b.gl_account_id
             where b.period_number = '202201'
+            and a.gl_account like %s
             order by a.gl_account
         '''
-        return self.q(sql)
-    
+        return self.q(sql, (department_patterns.get(department),))
+
     def job_performance(self, start_date: datetime.date, end_date: datetime.date):
         sql = '''
             select
