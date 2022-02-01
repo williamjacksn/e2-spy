@@ -132,7 +132,7 @@ class E2Database:
         '''
         return self.q(sql)
 
-    def income_statement(self, department: str):
+    def income_statement(self, department: str, start_date: datetime.date, end_date: datetime.date):
         department_patterns = {
             'shop': '%.1%',
             'processing': '%.2%',
@@ -141,15 +141,29 @@ class E2Database:
             'sales': '%.8%',
             'accounting': '%.9%',
         }
+        start_period = start_date.strftime('%Y%m')
+        end_period = end_date.strftime('%Y%m')
         sql = '''
-            select a.gl_account_id, a.gl_account, a.active, b.period_number, b.amount, a.description, a.gl_group_code, a.account_type
-            from gl_balance b
-            join gl_account a on a.gl_account_id = b.gl_account_id
-            where b.period_number = '202201'
-            and a.gl_account like %s
+            with a as (
+                select company_code, gl_account_id, gl_account, active, description, gl_group_code, account_type
+                from gl_account
+                where gl_account like %s
+            ),
+            b as (
+                select gl_account_id, sum(amount) total_amount
+                from gl_balance
+                where period_number between %s and %s
+                group by gl_account_id
+            )
+            select
+                a.gl_account, a.active, a.description, a.gl_group_code, a.account_type,
+                coalesce(b.total_amount, 0) total_amount
+            from a
+            left join b on b.gl_account_id = a.gl_account_id
             order by a.gl_account
         '''
-        return self.q(sql, (department_patterns.get(department),))
+        params = (department_patterns.get(department), start_period, end_period)
+        return self.q(sql, params)
 
     def job_performance(self, start_date: datetime.date, end_date: datetime.date):
         sql = '''
@@ -233,3 +247,15 @@ class E2Database:
             order by od.priority
         '''
         return self.q(sql)
+
+    def period_list(self, start_date: datetime.date, end_date: datetime.date):
+        start_period = start_date.strftime('%Y%m')
+        end_period = end_date.strftime('%Y%m')
+        sql = '''
+            select period_number
+            from period_number
+            where period_number between %s and %s
+            order by period_number
+        '''
+        params = (start_period, end_period)
+        return [row.get('period_number') for row in self.q(sql, params)]

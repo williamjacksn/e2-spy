@@ -95,17 +95,82 @@ def action_summary():
 
 
 @app.get('/income-statements')
-def income_statements_shop():
+def income_statements():
+    try:
+        start_date = str_to_date(flask.request.values.get('start_date'))
+    except (TypeError, ValueError):
+        start_date = None
+    try:
+        end_date = str_to_date(flask.request.values.get('end_date'))
+    except (TypeError, ValueError):
+        end_date = None
+    if start_date is None:
+        if end_date is None:
+            start_date = datetime.date.today().replace(day=1)
+            end_date = datetime.date.today()
+        else:
+            start_date = end_date.replace(day=1)
+    else:
+        if end_date is None:
+            end_date = datetime.date.today()
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+    flask.g.start_date = start_date
+    flask.g.end_date = end_date
     flask.g.department = flask.request.values.get('department', 'shop')
     e2db = get_e2_database(flask.g.db)
-    flask.g.rows = e2db.income_statement(flask.g.department)
-    flask.g.total = sum([row.get('amount') for row in flask.g.rows])
-    flask.g.revenue_total = sum([row.get('amount') for row in flask.g.rows if row.get('gl_group_code') in ('40',)])
+    flask.g.rows = e2db.income_statement(flask.g.department, flask.g.start_date, flask.g.end_date)
+    flask.g.period_list = e2db.period_list(flask.g.start_date, flask.g.end_date)
+    flask.g.total = sum([row.get('total_amount') for row in flask.g.rows])
+    flask.g.revenue_total = sum([
+        row.get('total_amount') for row in flask.g.rows
+        if row.get('gl_group_code') in ('40',)
+    ])
     flask.g.expense_total = sum([
-        row.get('amount') for row in flask.g.rows
+        row.get('total_amount') for row in flask.g.rows
         if row.get('gl_group_code') in ('50', '70', '80')
     ])
     return flask.render_template('income-statements.html')
+
+
+@app.get('/income-statements.xlsx')
+def income_statements_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    department = flask.request.values.get('department')
+    start_date = str_to_date(flask.request.values.get('start_date'))
+    end_date = str_to_date(flask.request.values.get('end_date'))
+    rows = e2db.income_statement(department, start_date, end_date)
+    output = io.BytesIO()
+    workbook_options = {
+        'default_date_format': 'yyyy-mm-dd',
+        'in_memory': True,
+    }
+    workbook = xlsxwriter.Workbook(output, workbook_options)
+    worksheet = workbook.add_worksheet()
+    headers = ['GL Code', 'Account Description', 'Account Type', 'Amount']
+    col_widths = [len(v) for v in headers]
+    worksheet.write_row(0, 0, headers)
+    col_names = ['gl_account', 'description', 'account_type', 'total_amount']
+    for i, row in enumerate(rows, start=1):
+        for j, col_name in enumerate(col_names):
+            col_data = row[col_name]
+            if col_name == 'gl_account':
+                col_widths[j] = max(10, len(str(col_data)))
+            else:
+                col_widths[j] = max(col_widths[j], len(str(col_data)))
+            worksheet.write(i, j, col_data)
+    for i, width in enumerate(col_widths):
+        worksheet.set_column(i, i, width)
+    worksheet.freeze_panes(1, 0)
+    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    workbook.close()
+    response = flask.make_response(output.getvalue())
+    filename = f'Income Statement ({department}, {start_date} to {end_date}).xlsx'
+    response.headers.update({
+        'Content-Disposition': f'attachment; filename="{filename}"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+    return response
 
 
 @app.get('/job-performance')

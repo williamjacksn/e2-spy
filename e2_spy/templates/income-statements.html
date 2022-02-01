@@ -13,25 +13,51 @@
 
     <div class="pt-3 row">
         <div class="col">
+            <p>This report includes the following periods: {{ g.period_list | join(', ') }}</p>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
             <form class="g-1 row">
                 <div class="col-auto">
-                    <select class="form-select" name="department">
-                    {% for id, name in [
-                        ('accounting', 'Accounting'),
-                        ('manufacturing', 'Manufacturing'),
-                        ('processing', 'Processing'),
-                        ('quality', 'Quality'),
-                        ('sales', 'Sales'),
-                        ('shop', 'Shop'),
-                    ] %}
-                        <option value="{{ id }}" {{ 'selected' if id == g.department }}>{{ name }}</option>
-                    {% endfor %}
-                    </select>
+                    <div class="input-group">
+                        <span class="input-group-text">period between</span>
+                        <input aria-label="Start date" class="form-control" name="start_date" type="date"
+                               value="{{ g.start_date }}">
+                        <span class="input-group-text">and</span>
+                        <input aria-label="End date" class="form-control" name="end_date" type="date"
+                               value="{{ g.end_date }}">
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="input-group">
+                        <span class="input-group-text">department</span>
+                        <select class="form-select" name="department">
+                        {% for id, name in [
+                            ('accounting', 'Accounting'),
+                            ('manufacturing', 'Manufacturing'),
+                            ('processing', 'Processing'),
+                            ('quality', 'Quality'),
+                            ('sales', 'Sales'),
+                            ('shop', 'Shop'),
+                        ] %}
+                            <option value="{{ id }}" {{ 'selected' if id == g.department }}>{{ name }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-outline-success" type="submit">
                         <i class="bi-arrow-clockwise"></i>
                         Apply
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" formaction="{{ url_for('income_statements_xlsx') }}"
+                            type="submit">
+                        <i class="bi-file-earmark-spreadsheet"></i>
+                        Export
                     </button>
                 </div>
             </form>
@@ -55,7 +81,7 @@
                         <td>{{ row.gl_account }}</td>
                         <td>{{ row.description }}</td>
                         <td>{{ row.account_type }}</td>
-                        <td class="text-end">{{ '{:,.2f}'.format(row.amount) }}</td>
+                        <td class="text-end">{{ '{:,.2f}'.format(row.total_amount) }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
