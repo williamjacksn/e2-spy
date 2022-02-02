@@ -5,11 +5,13 @@ import flask
 import functools
 import io
 import logging
+import pathlib
 import secrets
 import signal
 import sys
 import waitress
 import werkzeug.exceptions
+import whitenoise
 import xlsxwriter
 
 from db import AppDatabase, E2Database
@@ -41,6 +43,9 @@ def get_e2_database(_db: AppDatabase) -> E2Database:
 
 app = flask.Flask(__name__)
 
+whitenoise_root = pathlib.Path(__file__).resolve().with_name('static')
+app.wsgi_app = whitenoise.WhiteNoise(app.wsgi_app, root=whitenoise_root, prefix='static/')
+
 app_db = get_database()
 app_db.migrate()
 app.secret_key = app_db.secret_key
@@ -54,6 +59,7 @@ def handle_internal_server_error(e):
 
 @app.before_request
 def before_request():
+    log.debug(f'{flask.request.method} {flask.request.path}')
     flask.g.db = get_database()
     flask.session.permanent = True
     flask.g.session_id = flask.session.setdefault('session_id', secrets.token_urlsafe())
