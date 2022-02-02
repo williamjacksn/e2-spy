@@ -142,6 +142,21 @@ class AppDatabase(fort.SQLiteDatabase):
                 )
             ''')
             self.add_schema_version(2)
+        if self.version < 3:
+            self.log.info('Migrating database to schema version 3')
+            self.u('''
+                create table page_passwords (
+                    page_key text primary key,
+                    page_password text not null
+                )
+            ''')
+            self.u('''
+                create table unlocked_pages (
+                    session_id text,
+                    page_key text
+                )
+            ''')
+            self.add_schema_version(3)
 
     def _table_exists(self, table_name: str) -> bool:
         sql = '''
