@@ -4,6 +4,7 @@ import datetime
 import flask
 import io
 import logging
+import secrets
 import signal
 import sys
 import waitress
@@ -52,8 +53,9 @@ def handle_internal_server_error(e):
 
 @app.before_request
 def before_request():
-    """Open a database connection before each request"""
     flask.g.db = get_database()
+    flask.session.permanent = True
+    flask.g.session_id = flask.session.setdefault('session_id', secrets.token_urlsafe())
 
 
 @app.get('/')
