@@ -2,6 +2,7 @@ import config
 import contextlib
 import datetime
 import flask
+import functools
 import io
 import logging
 import secrets
@@ -56,6 +57,21 @@ def before_request():
     flask.g.db = get_database()
     flask.session.permanent = True
     flask.g.session_id = flask.session.setdefault('session_id', secrets.token_urlsafe())
+    flask.g.unlocked_pages = flask.g.db.get_unlocked_pages(flask.g.session_id)
+
+
+def page_lock(page_key: str):
+    def decorator(f):
+        @functools.wraps(f)
+        def decorated_function(*args, **kwargs):
+            log.debug(f'Checking if session {flask.g.session_id} has unlocked page {page_key}')
+            if page_key in flask.g.unlocked_pages:
+                log.debug('Page is unlocked')
+            else:
+                log.debug('Page is locked')
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 
 @app.get('/')
@@ -97,6 +113,7 @@ def action_summary():
 
 
 @app.get('/income-statements')
+@page_lock('income-statements')
 def income_statements():
     try:
         start_date = str_to_date(flask.request.values.get('start_date'))
@@ -136,6 +153,7 @@ def income_statements():
 
 
 @app.get('/income-statements.xlsx')
+@page_lock('income-statements')
 def income_statements_xlsx():
     e2db = get_e2_database(flask.g.db)
     department = flask.request.values.get('department')

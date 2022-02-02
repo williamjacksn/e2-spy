@@ -74,6 +74,18 @@ class AppDatabase(fort.SQLiteDatabase):
         }
         self.u(sql, params)
 
+    def get_unlocked_pages(self, session_id: str) -> list[str]:
+        sql = '''
+            select page_key
+            from unlocked_pages
+            where session_id = :session_id
+            order by page_key
+        '''
+        params = {
+            'session_id': session_id
+        }
+        return [r['page_key'] for r in self.q(sql, params)]
+
     def job_notes_delete(self, job_number: str):
         sql = '''
             delete from job_notes where job_number = :job_number
