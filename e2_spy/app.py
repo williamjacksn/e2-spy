@@ -71,6 +71,7 @@ def page_lock(page_key: str):
         @functools.wraps(f)
         def decorated_function(*args, **kwargs):
             log.debug(f'Checking if session {flask.g.session_id} has unlocked page {page_key}')
+            flask.g.page_key = page_key
             if page_key in flask.g.unlocked_pages:
                 log.debug('Page is unlocked')
             else:
