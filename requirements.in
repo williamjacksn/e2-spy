@@ -2,4 +2,5 @@ flask
 fort
 pymssql
 waitress
+whitenoise
 xlsxwriter
