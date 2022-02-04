@@ -86,6 +86,37 @@ class AppDatabase(fort.SQLiteDatabase):
         }
         return [r['page_key'] for r in self.q(sql, params)]
 
+    def lock_page(self, session_id: str, page_key: str):
+        sql = '''
+            delete from unlocked_pages where session_id = :session_id and page_key = :page_key
+        '''
+        params = {
+            'page_key': page_key,
+            'session_id': session_id
+        }
+        self.u(sql, params)
+
+    def unlock_page(self, session_id: str, page_key: str):
+        self.lock_page(session_id, page_key)
+        sql = '''
+            insert into unlocked_pages (session_id, page_key) values (:session_id, :page_key)
+        '''
+        params = {
+            'page_key': page_key,
+            'session_id': session_id,
+        }
+        self.u(sql, params)
+
+    def check_page_password(self, page_key: str, password: str) -> bool:
+        sql = '''
+            select page_password from page_passwords where page_key = :page_key
+        '''
+        params = {
+            'page_key': page_key
+        }
+        page_password = self.q_val(sql, params)
+        return password == page_password
+
     def job_notes_delete(self, job_number: str):
         sql = '''
             delete from job_notes where job_number = :job_number

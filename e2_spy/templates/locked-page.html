@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% set title = 'Locked Page' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <p class="lead">
+                You tried to view a locked page: <strong>{{ request.endpoint }}</strong>.
+                Please enter the password.
+            </p>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col-auto">
+            <form action="{{ url_for('unlock') }}" method="post">
+                <div class="mb-3">
+                    <input name="endpoint" type="hidden" value="{{ request.endpoint }}">
+                    <input class="form-control" name="password" required type="password">
+                </div>
+                <button class="btn btn-outline-success" type="submit">
+                    <i class="bi-key"></i>
+                    Unlock
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

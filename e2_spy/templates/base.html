@@ -23,6 +23,14 @@
                     {% endblock %}
                 </div>
                 <div class="col-auto">
+                    {% if g.unlocked %}
+                    <form action="{{ url_for('lock') }}" class="d-inline" method="post">
+                        <input name="endpoint" type="hidden" value="{{ request.endpoint }}">
+                        <button class="btn btn-outline-dark" title="Lock this page" type="submit">
+                            <i class="bi-unlock"></i>
+                        </button>
+                        </form>
+                    {% endif %}
                     <a class="btn btn-outline-dark" href="{{ url_for('settings') }}" title="Settings">
                         <i class="bi-gear"></i>
                     </a>

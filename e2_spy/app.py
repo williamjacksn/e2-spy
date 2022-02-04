@@ -59,26 +59,25 @@ def handle_internal_server_error(e):
 
 @app.before_request
 def before_request():
-    log.debug(f'{flask.request.method} {flask.request.path}')
+    log.debug(f'{flask.request.method} {flask.request.path} -> {flask.request.endpoint}')
     flask.g.db = get_database()
     flask.session.permanent = True
     flask.g.session_id = flask.session.setdefault('session_id', secrets.token_urlsafe())
     flask.g.unlocked_pages = flask.g.db.get_unlocked_pages(flask.g.session_id)
 
 
-def page_lock(page_key: str):
-    def decorator(f):
-        @functools.wraps(f)
-        def decorated_function(*args, **kwargs):
-            log.debug(f'Checking if session {flask.g.session_id} has unlocked page {page_key}')
-            flask.g.page_key = page_key
-            if page_key in flask.g.unlocked_pages:
-                log.debug('Page is unlocked')
-            else:
-                log.debug('Page is locked')
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
+def page_lock(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        log.debug(f'Checking if session {flask.g.session_id} has unlocked page {flask.request.endpoint}')
+        if flask.request.endpoint in flask.g.unlocked_pages:
+            log.debug('Page is unlocked')
+            flask.g.unlocked = True
+        else:
+            log.debug('Page is locked')
+            return flask.render_template('locked-page.html')
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @app.get('/')
@@ -120,7 +119,7 @@ def action_summary():
 
 
 @app.get('/income-statements')
-@page_lock('income-statements')
+@page_lock
 def income_statements():
     try:
         start_date = str_to_date(flask.request.values.get('start_date'))
@@ -160,7 +159,7 @@ def income_statements():
 
 
 @app.get('/income-statements.xlsx')
-@page_lock('income-statements')
+@page_lock
 def income_statements_xlsx():
     e2db = get_e2_database(flask.g.db)
     department = flask.request.values.get('department')
@@ -451,6 +450,15 @@ def loading_summary_xlsx():
     return response
 
 
+@app.post('/lock')
+def lock():
+    endpoint = flask.request.values.get('endpoint')
+    log.debug(f'Got a request from session {flask.g.session_id} to lock {endpoint}')
+    flask.g.db.lock_page(flask.g.session_id, endpoint)
+    flask.g.db.lock_page(flask.g.session_id, f'{endpoint}_xlsx')
+    return flask.redirect(flask.url_for('index'))
+
+
 @app.get('/open-sales-report')
 def open_sales_report():
     e2db = get_e2_database(flask.g.db)
@@ -507,6 +515,23 @@ def settings_save():
     flask.g.db.e2_password = flask.request.values.get('e2-password')
     flask.g.db.e2_user = flask.request.values.get('e2-user')
     return flask.redirect(flask.url_for('index'))
+
+
+@app.get('/test')
+@page_lock
+def test():
+    return 'OK'
+
+
+@app.post('/unlock')
+def unlock():
+    endpoint = flask.request.values.get('endpoint')
+    password = flask.request.values.get('password')
+    log.debug(f'Got a request from session {flask.g.session_id} to unlock {endpoint}')
+    if flask.g.db.check_page_password(endpoint, password):
+        flask.g.db.unlock_page(flask.g.session_id, endpoint)
+        flask.g.db.unlock_page(flask.g.session_id, f'{endpoint}_xlsx')
+    return flask.redirect(flask.url_for(endpoint))
 
 
 def main():
