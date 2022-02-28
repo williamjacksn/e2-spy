@@ -24,5 +24,5 @@ werkzeug==2.0.2
     # via flask
 whitenoise==6.0.0
     # via -r requirements.in
-xlsxwriter==3.0.2
+xlsxwriter==3.0.3
     # via -r requirements.in
