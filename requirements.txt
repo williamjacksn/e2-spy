@@ -4,23 +4,25 @@
 #
 #    pip-compile
 #
-click==8.0.3
+click==8.0.4
     # via flask
+colorama==0.4.4
+    # via click
 flask==2.0.3
     # via -r requirements.in
 fort==1.0.1
     # via -r requirements.in
-itsdangerous==2.0.1
+itsdangerous==2.1.0
     # via flask
 jinja2==3.0.3
     # via flask
-markupsafe==2.0.1
+markupsafe==2.1.0
     # via jinja2
 pymssql==2.2.4
     # via -r requirements.in
 waitress==2.0.0
     # via -r requirements.in
-werkzeug==2.0.2
+werkzeug==2.0.3
     # via flask
 whitenoise==6.0.0
     # via -r requirements.in
