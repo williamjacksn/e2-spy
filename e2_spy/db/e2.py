@@ -165,8 +165,12 @@ class E2Database:
         params = (department_patterns.get(department), start_period, end_period)
         return self.q(sql, params)
 
-    def job_performance(self, start_date: datetime.date, end_date: datetime.date):
-        sql = '''
+    def job_performance(self, start_date: datetime.date, end_date: datetime.date, get_all: bool = False):
+        if get_all:
+            date_closed_filter = ''
+        else:
+            date_closed_filter = 'and cast(date_closed as date) between %s and %s'
+        sql = f'''
             select
                 cast(date_closed as date) date_closed, job_number, part_description, part_number,
                 cast(
@@ -178,7 +182,7 @@ class E2Database:
             from order_detail
             where company_code = 'spmtech'
             and status = 'closed'
-            and cast(date_closed as date) between %s and %s
+            {date_closed_filter}
             order by date_closed desc
         '''
         params = (

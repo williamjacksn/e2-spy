@@ -233,7 +233,8 @@ def job_performance_xlsx():
     e2db = get_e2_database(flask.g.db)
     start_date = str_to_date(flask.request.values.get('start_date'))
     end_date = str_to_date(flask.request.values.get('end_date'))
-    rows = e2db.job_performance(start_date, end_date)
+    get_all = flask.request.values.get('get_all') == 'true'
+    rows = e2db.job_performance(start_date, end_date, get_all)
     notes = flask.g.db.job_notes_list()
     output = io.BytesIO()
     workbook_options = {
@@ -269,8 +270,12 @@ def job_performance_xlsx():
     worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
     workbook.close()
     response = flask.make_response(output.getvalue())
+    if get_all:
+        record_range = 'all'
+    else:
+        record_range = f'{start_date} to {end_date}'
     response.headers.update({
-        'Content-Disposition': f'attachment; filename="Job Performance ({start_date} to {end_date}).xlsx"',
+        'Content-Disposition': f'attachment; filename="Job Performance ({record_range}).xlsx"',
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     })
     return response
