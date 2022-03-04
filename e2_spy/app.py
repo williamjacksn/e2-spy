@@ -231,9 +231,9 @@ def job_performance():
 @app.get('/job-performance.xlsx')
 def job_performance_xlsx():
     e2db = get_e2_database(flask.g.db)
-    start_date = str_to_date(flask.request.values.get('start_date'))
-    end_date = str_to_date(flask.request.values.get('end_date'))
     get_all = flask.request.values.get('get_all') == 'true'
+    start_date = str_to_date(flask.request.values.get('start_date', '2022-01-01'))
+    end_date = str_to_date(flask.request.values.get('end_date', '2022-01-01'))
     rows = e2db.job_performance(start_date, end_date, get_all)
     notes = flask.g.db.job_notes_list()
     output = io.BytesIO()

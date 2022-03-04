@@ -38,11 +38,10 @@
                     </button>
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-outline-success" formaction="{{ url_for('job_performance_xlsx') }}"
-                            name="get_all" type="submit" value="true">
+                    <a class="btn btn-outline-success" href="{{ url_for('job_performance_xlsx', get_all='true') }}">
                         <i class="bi-file-earmark-spreadsheet"></i>
                         Export all
-                    </button>
+                    </a>
                 </div>
             </form>
         </div>
