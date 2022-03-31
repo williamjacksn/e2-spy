@@ -6,7 +6,7 @@
 #
 click==8.0.4
     # via flask
-flask==2.1.0
+flask==2.1.1
     # via -r requirements.in
 fort==1.0.1
     # via -r requirements.in
