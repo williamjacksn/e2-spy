@@ -169,21 +169,37 @@ class E2Database:
         if get_all:
             date_closed_filter = ''
         else:
-            date_closed_filter = 'and cast(date_closed as date) between %s and %s'
+            date_closed_filter = 'and cast(o.date_closed as date) between %s and %s'
         sql = f'''
+            with h as (
+                select
+                    order_detail_id,
+                    sum(total_estimated_hours) total_estimated_hours,
+                    sum(total_actual_hours) total_actual_hours
+                from routing_header
+                where order_detail_id is not null
+                group by order_detail_id
+            )
             select
-                cast(date_closed as date) date_closed, job_number, part_description, part_number,
+                cast(o.date_closed as date) date_closed,
+                o.job_number,
+                o.part_description,
+                o.part_number,
                 cast(
                     case
-                        when total_estimated_hours > 0 then total_actual_hours / total_estimated_hours * 100
+                        when h.total_estimated_hours > 0
+                        then h.total_actual_hours / h.total_estimated_hours * 100
                         else 0
                     end
-                    as int) performance, total_actual_hours, total_estimated_hours
-            from order_detail
-            where company_code = 'spmtech'
-            and status = 'closed'
+                as int) performance,
+                coalesce(h.total_estimated_hours, 0) total_estimated_hours,
+                coalesce(h.total_actual_hours, 0) total_actual_hours
+            from order_detail o
+            left join h on h.order_detail_id = o.order_detail_id
+            where o.company_code = 'spmtech'
+            and o.status = 'closed'
             {date_closed_filter}
-            order by date_closed desc
+            order by o.date_closed desc
         '''
         params = (
             start_date,
