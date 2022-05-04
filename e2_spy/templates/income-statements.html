@@ -35,6 +35,7 @@
                         <span class="input-group-text">department</span>
                         <select class="form-select" name="department">
                         {% for id, name in [
+                            ('~all', '- all departments -'),
                             ('accounting', 'Accounting'),
                             ('manufacturing', 'Manufacturing'),
                             ('processing', 'Processing'),

@@ -143,11 +143,17 @@ class E2Database:
         }
         start_period = start_date.strftime('%Y%m')
         end_period = end_date.strftime('%Y%m')
-        sql = '''
+        if department == '~all':
+            gl_account_filter = ''
+            params = (start_period, end_period)
+        else:
+            gl_account_filter = 'where gl_account like %s'
+            params = (department_patterns.get(department), start_period, end_period)
+        sql = f'''
             with a as (
                 select company_code, gl_account_id, gl_account, active, description, gl_group_code, account_type
                 from gl_account
-                where gl_account like %s
+                {gl_account_filter}
             ),
             b as (
                 select gl_account_id, sum(amount) total_amount
@@ -162,7 +168,6 @@ class E2Database:
             left join b on b.gl_account_id = a.gl_account_id
             order by a.gl_account
         '''
-        params = (department_patterns.get(department), start_period, end_period)
         return self.q(sql, params)
 
     def job_performance(self, start_date: datetime.date, end_date: datetime.date, get_all: bool = False):

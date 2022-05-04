@@ -146,14 +146,17 @@ def income_statements():
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.income_statement(flask.g.department, flask.g.start_date, flask.g.end_date)
     flask.g.period_list = e2db.period_list(flask.g.start_date, flask.g.end_date)
-    flask.g.total = sum([row.get('total_amount') for row in flask.g.rows])
+    flask.g.total = sum([
+        row.get('total_amount') for row in flask.g.rows
+        if row.get('gl_group_code') in ('40', '50', '60', '70', '80', '90', '99')
+    ])
     flask.g.revenue_total = sum([
         row.get('total_amount') for row in flask.g.rows
-        if row.get('gl_group_code') in ('40',)
+        if row.get('gl_group_code') in ('40', '90')
     ])
     flask.g.expense_total = sum([
         row.get('total_amount') for row in flask.g.rows
-        if row.get('gl_group_code') in ('50', '70', '80')
+        if row.get('gl_group_code') in ('50', '60', '70', '80', '99')
     ])
     return flask.render_template('income-statements.html')
 
