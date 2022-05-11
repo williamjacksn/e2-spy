@@ -10,8 +10,6 @@ flask==2.1.2
     # via -r requirements.in
 fort==1.0.1
     # via -r requirements.in
-importlib-metadata==4.11.3
-    # via flask
 itsdangerous==2.1.2
     # via flask
 jinja2==3.1.2
@@ -24,9 +22,7 @@ waitress==2.1.1
     # via -r requirements.in
 werkzeug==2.1.2
     # via flask
-whitenoise==6.0.0
+whitenoise==6.1.0
     # via -r requirements.in
 xlsxwriter==3.0.3
     # via -r requirements.in
-zipp==3.8.0
-    # via importlib-metadata
