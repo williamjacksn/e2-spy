@@ -197,6 +197,7 @@ class E2Database:
                         else 0
                     end
                 as int) performance,
+                o.product_code,
                 coalesce(h.total_estimated_hours, 0) total_estimated_hours,
                 coalesce(h.total_actual_hours, 0) total_actual_hours
             from order_detail o

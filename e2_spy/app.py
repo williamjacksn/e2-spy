@@ -248,14 +248,14 @@ def job_performance_xlsx():
     text_wrap = workbook.add_format({'text_wrap': True})
     worksheet = workbook.add_worksheet()
     headers = [
-        'Job Number', 'Part Number', 'Part Description', 'Date Closed', 'Estimated Hours', 'Actual Hours',
-        'Performance', 'Job Notes'
+        'Job Number', 'Part Number', 'Part Description', 'Product Code', 'Date Closed', 'Estimated Hours',
+        'Actual Hours', 'Performance', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
     worksheet.write_row(0, 0, headers)
     col_names = [
-        'job_number', 'part_number', 'part_description', 'date_closed', 'total_estimated_hours', 'total_actual_hours',
-        'performance', 'job_notes'
+        'job_number', 'part_number', 'part_description', 'product_code', 'date_closed', 'total_estimated_hours',
+        'total_actual_hours', 'performance', 'job_notes'
     ]
     for i, row in enumerate(rows, start=1):
         for j, col_name in enumerate(col_names):
