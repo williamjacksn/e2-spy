@@ -10,19 +10,25 @@ flask==2.1.3
     # via -r requirements.in
 fort==1.1.2
     # via -r requirements.in
+importlib-metadata==4.12.0
+    # via flask
 itsdangerous==2.1.2
     # via flask
 jinja2==3.1.2
     # via flask
 markupsafe==2.1.1
-    # via jinja2
+    # via
+    #   jinja2
+    #   werkzeug
 pymssql==2.2.5
     # via -r requirements.in
 waitress==2.1.2
     # via -r requirements.in
-werkzeug==2.1.2
+werkzeug==2.2.0
     # via flask
 whitenoise==6.2.0
     # via -r requirements.in
 xlsxwriter==3.0.3
     # via -r requirements.in
+zipp==3.8.1
+    # via importlib-metadata
