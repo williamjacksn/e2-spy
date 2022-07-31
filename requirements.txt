@@ -22,7 +22,7 @@ pymssql==2.2.5
     # via -r requirements.in
 waitress==2.1.2
     # via -r requirements.in
-werkzeug==2.2.0
+werkzeug==2.2.1
     # via flask
 whitenoise==6.2.0
     # via -r requirements.in
