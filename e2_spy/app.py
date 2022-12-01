@@ -118,6 +118,62 @@ def action_summary():
     return flask.render_template('action-summary.html')
 
 
+@app.get('/closed-jobs')
+def closed_jobs():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.closed_jobs()
+    flask.g.job_notes = flask.g.db.job_notes_list()
+    return flask.render_template('closed-jobs.html')
+
+
+@app.get('/closed-jobs.xlsx')
+def closed_jobs_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.closed_jobs()
+    notes = flask.g.db.job_notes_list()
+    output = io.BytesIO()
+    workbook_options = {
+        'default_date_format': 'yyyy-mm-dd',
+        'in_memory': True,
+    }
+    workbook = xlsxwriter.Workbook(output, workbook_options)
+    text_wrap = workbook.add_format({'text_wrap': True})
+    worksheet = workbook.add_worksheet()
+    headers = [
+        'Job Number', 'Part Number', 'Part Description', 'Order Number', 'Customer Code', 'Customer PO Number',
+        'Date Closed', 'Job Notes'
+    ]
+    col_widths = [len(v) for v in headers]
+    col_names = [
+        'job_number', 'part_number', 'part_description', 'order_number', 'customer_code', 'customer_po_number',
+        'date_closed', 'job_notes'
+    ]
+    for i, row in enumerate(rows, start=1):
+        for j, col_name in enumerate(col_names):
+            if col_name == 'job_notes':
+                col_data = notes.get(row['job_number'], '')
+                col_widths[j] = 40
+                worksheet.write_string(i, j, col_data, text_wrap)
+            else:
+                col_data = row[col_name]
+                col_widths[j] = max(col_widths[j], len(str(col_data)))
+                worksheet.write(i, j, col_data)
+    for i, width in enumerate(col_widths):
+        worksheet.set_column(i, i, width)
+    table_options = {
+        'name': 'ClosedJobs',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
+    workbook.close()
+    response = flask.make_response(output.getvalue())
+    response.headers.update({
+        'Content-Disposition': 'attachment; filename="Closed Jobs.xlsx"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    return response
+
+
 @app.get('/contacts')
 def contacts():
     e2db = get_e2_database(flask.g.db)
@@ -156,6 +212,70 @@ def contacts_xlsx():
     response.headers.update({
         'Content-Disposition': f'attachment; filename="{filename}"',
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+    return response
+
+
+@app.get('/days-since-last-activity')
+def days_since_last_activity():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.days_since_last_activity()
+    flask.g.job_notes = flask.g.db.job_notes_list()
+    return flask.render_template('days-since-last-activity.html')
+
+
+@app.get('/days-since-last-activity.xlsx')
+def days_since_last_activity_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.days_since_last_activity()
+    notes = flask.g.db.job_notes_list()
+    output = io.BytesIO()
+    workbook_options = {
+        'default_date_format': 'yyyy-mm-dd',
+        'in_memory': True,
+    }
+    workbook = xlsxwriter.Workbook(output, workbook_options)
+    text_wrap = workbook.add_format({'text_wrap': True})
+    worksheet = workbook.add_worksheet()
+    headers = [
+        'Job Number', 'Part Number', 'Part Description', 'Current Step', 'Next Step', 'Actual Start Date',
+        'Actual End Date', 'Days Since Last Activity', 'Job Notes'
+    ]
+    col_widths = [len(v) for v in headers]
+    col_names = [
+        'job_number', 'part_number', 'part_description', 'current_step', 'next_step', 'actual_start_date',
+        'actual_end_date', 'days_since_last_activity', 'job_notes'
+    ]
+    for i, row in enumerate(rows, start=1):
+        for j, col_name in enumerate(col_names):
+            if col_name == 'job_number':
+                col_data = row[col_name]
+                worksheet.write(i, j, col_data)
+                col_widths[j] = max(14, len(col_data))  # 14 is a good width for 'Job Number'
+            elif col_name == 'part_description':
+                col_data = row[col_name]
+                worksheet.write_string(i, j, col_data)
+                col_widths[j] = max(col_widths[j], len(col_data))
+            elif col_name == 'job_notes':
+                col_data = notes.get(row['job_number'], '')
+                worksheet.write_string(i, j, col_data, text_wrap)
+                col_widths[j] = 40  # 40 is a good width for 'Job Notes'
+            else:
+                col_data = row[col_name]
+                worksheet.write(i, j, col_data)
+                col_widths[j] = max(col_widths[j], len(str(col_data)))
+    for i, width in enumerate(col_widths):
+        worksheet.set_column(i, i, width)
+    table_options = {
+        'name': 'DaysSinceLastActivity',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
+    workbook.close()
+    response = flask.make_response(output.getvalue())
+    response.headers.update({
+        'Content-Disposition': 'attachment; filename="Days Since Last Activity.xlsx"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     })
     return response
 
@@ -244,6 +364,21 @@ def income_statements_xlsx():
     return response
 
 
+@app.post('/job-notes')
+def job_notes():
+    for k, v in flask.request.values.lists():
+        log.debug(f'{k}: {v}')
+    db: AppDatabase = flask.g.db
+    job_number = flask.request.values.get('job_number')
+    notes = flask.request.values.get('notes')
+    if notes:
+        db.job_notes_update(job_number, notes)
+    else:
+        db.job_notes_delete(job_number)
+    next_view = flask.request.values.get('next_view')
+    return flask.redirect(flask.url_for(next_view))
+
+
 @app.get('/job-performance')
 def job_performance():
     e2db = get_e2_database(flask.g.db)
@@ -326,141 +461,6 @@ def job_performance_xlsx():
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     })
     return response
-
-
-@app.get('/closed-jobs')
-def closed_jobs():
-    e2db = get_e2_database(flask.g.db)
-    flask.g.rows = e2db.closed_jobs()
-    flask.g.job_notes = flask.g.db.job_notes_list()
-    return flask.render_template('closed-jobs.html')
-
-
-@app.get('/closed-jobs.xlsx')
-def closed_jobs_xlsx():
-    e2db = get_e2_database(flask.g.db)
-    rows = e2db.closed_jobs()
-    notes = flask.g.db.job_notes_list()
-    output = io.BytesIO()
-    workbook_options = {
-        'default_date_format': 'yyyy-mm-dd',
-        'in_memory': True,
-    }
-    workbook = xlsxwriter.Workbook(output, workbook_options)
-    text_wrap = workbook.add_format({'text_wrap': True})
-    worksheet = workbook.add_worksheet()
-    headers = [
-        'Job Number', 'Part Number', 'Part Description', 'Order Number', 'Customer Code', 'Customer PO Number',
-        'Date Closed', 'Job Notes'
-    ]
-    col_widths = [len(v) for v in headers]
-    col_names = [
-        'job_number', 'part_number', 'part_description', 'order_number', 'customer_code', 'customer_po_number',
-        'date_closed', 'job_notes'
-    ]
-    for i, row in enumerate(rows, start=1):
-        for j, col_name in enumerate(col_names):
-            if col_name == 'job_notes':
-                col_data = notes.get(row['job_number'], '')
-                col_widths[j] = 40
-                worksheet.write_string(i, j, col_data, text_wrap)
-            else:
-                col_data = row[col_name]
-                col_widths[j] = max(col_widths[j], len(str(col_data)))
-                worksheet.write(i, j, col_data)
-    for i, width in enumerate(col_widths):
-        worksheet.set_column(i, i, width)
-    table_options = {
-        'name': 'ClosedJobs',
-        'columns': [{'header': h} for h in headers]
-    }
-    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
-    workbook.close()
-    response = flask.make_response(output.getvalue())
-    response.headers.update({
-        'Content-Disposition': 'attachment; filename="Closed Jobs.xlsx"',
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    })
-    return response
-
-
-@app.get('/days-since-last-activity')
-def days_since_last_activity():
-    e2db = get_e2_database(flask.g.db)
-    flask.g.rows = e2db.days_since_last_activity()
-    flask.g.job_notes = flask.g.db.job_notes_list()
-    return flask.render_template('days-since-last-activity.html')
-
-
-@app.get('/days-since-last-activity.xlsx')
-def days_since_last_activity_xlsx():
-    e2db = get_e2_database(flask.g.db)
-    rows = e2db.days_since_last_activity()
-    notes = flask.g.db.job_notes_list()
-    output = io.BytesIO()
-    workbook_options = {
-        'default_date_format': 'yyyy-mm-dd',
-        'in_memory': True,
-    }
-    workbook = xlsxwriter.Workbook(output, workbook_options)
-    text_wrap = workbook.add_format({'text_wrap': True})
-    worksheet = workbook.add_worksheet()
-    headers = [
-        'Job Number', 'Part Number', 'Part Description', 'Current Step', 'Next Step', 'Actual Start Date',
-        'Actual End Date', 'Days Since Last Activity', 'Job Notes'
-    ]
-    col_widths = [len(v) for v in headers]
-    col_names = [
-        'job_number', 'part_number', 'part_description', 'current_step', 'next_step', 'actual_start_date',
-        'actual_end_date', 'days_since_last_activity', 'job_notes'
-    ]
-    for i, row in enumerate(rows, start=1):
-        for j, col_name in enumerate(col_names):
-            if col_name == 'job_number':
-                col_data = row[col_name]
-                worksheet.write(i, j, col_data)
-                col_widths[j] = max(14, len(col_data))  # 14 is a good width for 'Job Number'
-            elif col_name == 'part_description':
-                col_data = row[col_name]
-                worksheet.write_string(i, j, col_data)
-                col_widths[j] = max(col_widths[j], len(col_data))
-            elif col_name == 'job_notes':
-                col_data = notes.get(row['job_number'], '')
-                worksheet.write_string(i, j, col_data, text_wrap)
-                col_widths[j] = 40  # 40 is a good width for 'Job Notes'
-            else:
-                col_data = row[col_name]
-                worksheet.write(i, j, col_data)
-                col_widths[j] = max(col_widths[j], len(str(col_data)))
-    for i, width in enumerate(col_widths):
-        worksheet.set_column(i, i, width)
-    table_options = {
-        'name': 'DaysSinceLastActivity',
-        'columns': [{'header': h} for h in headers]
-    }
-    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
-    workbook.close()
-    response = flask.make_response(output.getvalue())
-    response.headers.update({
-        'Content-Disposition': 'attachment; filename="Days Since Last Activity.xlsx"',
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    })
-    return response
-
-
-@app.post('/job-notes')
-def job_notes():
-    for k, v in flask.request.values.lists():
-        log.debug(f'{k}: {v}')
-    db: AppDatabase = flask.g.db
-    job_number = flask.request.values.get('job_number')
-    notes = flask.request.values.get('notes')
-    if notes:
-        db.job_notes_update(job_number, notes)
-    else:
-        db.job_notes_delete(job_number)
-    next_view = flask.request.values.get('next_view')
-    return flask.redirect(flask.url_for(next_view))
 
 
 @app.get('/loading-summary')
