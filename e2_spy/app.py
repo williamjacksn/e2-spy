@@ -118,6 +118,46 @@ def action_summary():
     return flask.render_template('action-summary.html')
 
 
+@app.get('/contacts')
+def contacts():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.contacts_list()
+    return flask.render_template('contacts.html')
+
+
+@app.get('/contacts.xlsx')
+def contacts_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.contacts_list()
+    output = io.BytesIO()
+    workbook_options = {
+        'in_memory': True,
+    }
+    workbook = xlsxwriter.Workbook(output, workbook_options)
+    worksheet = workbook.add_worksheet()
+    headers = ['Contact Type', 'Customer Name', 'Vendor Name', 'Contact Name', 'Phone Number', 'Email', 'Title']
+    col_widths = [len(v) for v in headers]
+    worksheet.write_row(0, 0, headers)
+    col_names = ['contact_type', 'customer_name', 'vendor_name', 'contact_name', 'phone_number', 'email', 'title']
+    for i, row in enumerate(rows, start=1):
+        for j, col_name in enumerate(col_names):
+            col_data = row[col_name]
+            col_widths[j] = max(col_widths[j], len(str(col_data)))
+            worksheet.write(i, j, col_data)
+    for i, width in enumerate(col_widths):
+        worksheet.set_column(i, i, width)
+    worksheet.freeze_panes(1, 0)
+    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    workbook.close()
+    response = flask.make_response(output.getvalue())
+    filename = 'Contacts.xlsx'
+    response.headers.update({
+        'Content-Disposition': f'attachment; filename="{filename}"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+    return response
+
+
 @app.get('/income-statements')
 @page_lock
 def income_statements():

@@ -53,6 +53,25 @@ class E2Database:
         '''
         return self.q(sql)
 
+    def contacts_list(self):
+        sql = '''
+            select
+            	case
+	            	when c.customer_code_id is not null then 'Customer'
+	            	when c.vendor_code_id is not null then 'Vendor'
+	            end contact_type,
+                coalesce(cu.customer_name, '') customer_name, coalesce(v.vendor_name, '') vendor_name, c.contact_name,
+                coalesce(c.phone_number, '') phone_number, coalesce(c.email_address, '') email,
+                coalesce(c.title, '') title
+            from contact_header c
+            left join customer_code cu on cu.customer_code_id = c.customer_code_id
+            left join vendor_code v on v.vendor_code_id  = c.vendor_code_id
+            where c.company_code = 'spmtech'
+            and c.contact_name is not null
+            order by contact_type, customer_name, vendor_name, contact_name
+        '''
+        return self.q(sql)
+
     def days_since_last_activity(self):
         sql = '''
             select
