@@ -22,7 +22,7 @@ markupsafe==2.1.1
     # via
     #   jinja2
     #   werkzeug
-pymssql==2.2.5
+pymssql==2.2.7
     # via -r requirements.in
 waitress==2.1.2
     # via -r requirements.in
