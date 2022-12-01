@@ -137,7 +137,6 @@ def contacts_xlsx():
     worksheet = workbook.add_worksheet()
     headers = ['Contact Type', 'Customer Name', 'Vendor Name', 'Contact Name', 'Phone Number', 'Email', 'Title']
     col_widths = [len(v) for v in headers]
-    worksheet.write_row(0, 0, headers)
     col_names = ['contact_type', 'customer_name', 'vendor_name', 'contact_name', 'phone_number', 'email', 'title']
     for i, row in enumerate(rows, start=1):
         for j, col_name in enumerate(col_names):
@@ -146,8 +145,11 @@ def contacts_xlsx():
             worksheet.write(i, j, col_data)
     for i, width in enumerate(col_widths):
         worksheet.set_column(i, i, width)
-    worksheet.freeze_panes(1, 0)
-    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    table_options = {
+        'name': 'Contacts',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
     workbook.close()
     response = flask.make_response(output.getvalue())
     filename = 'Contacts.xlsx'
@@ -292,7 +294,6 @@ def job_performance_xlsx():
         'Actual Hours', 'Performance', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
-    worksheet.write_row(0, 0, headers)
     col_names = [
         'job_number', 'part_number', 'part_description', 'product_code', 'date_closed', 'total_estimated_hours',
         'total_actual_hours', 'performance', 'job_notes'
@@ -309,8 +310,11 @@ def job_performance_xlsx():
                 worksheet.write(i, j, col_data)
     for i, width in enumerate(col_widths):
         worksheet.set_column(i, i, width)
-    worksheet.freeze_panes(1, 0)
-    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    table_options = {
+        'name': 'JobPerformance',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
     workbook.close()
     response = flask.make_response(output.getvalue())
     if get_all:
@@ -350,7 +354,6 @@ def closed_jobs_xlsx():
         'Date Closed', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
-    worksheet.write_row(0, 0, headers)
     col_names = [
         'job_number', 'part_number', 'part_description', 'order_number', 'customer_code', 'customer_po_number',
         'date_closed', 'job_notes'
@@ -367,8 +370,11 @@ def closed_jobs_xlsx():
                 worksheet.write(i, j, col_data)
     for i, width in enumerate(col_widths):
         worksheet.set_column(i, i, width)
-    worksheet.freeze_panes(1, 0)
-    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    table_options = {
+        'name': 'ClosedJobs',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
     workbook.close()
     response = flask.make_response(output.getvalue())
     response.headers.update({
@@ -404,30 +410,35 @@ def days_since_last_activity_xlsx():
         'Actual End Date', 'Days Since Last Activity', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
-    worksheet.write_row(0, 0, headers)
+    col_names = [
+        'job_number', 'part_number', 'part_description', 'current_step', 'next_step', 'actual_start_date',
+        'actual_end_date', 'days_since_last_activity', 'job_notes'
+    ]
     for i, row in enumerate(rows, start=1):
-        worksheet.write(i, 0, row['job_number'])
-        col_widths[0] = max(14, len(row['job_number']))  # 14 is a good width for 'Job Number'
-        worksheet.write(i, 1, row['part_number'])
-        col_widths[1] = max(col_widths[1], len(row['part_number']))
-        worksheet.write_string(i, 2, row['part_description'])
-        col_widths[2] = max(col_widths[2], len(row['part_description']))
-        worksheet.write(i, 3, row['current_step'])
-        col_widths[3] = max(col_widths[3], len(row['current_step']))
-        worksheet.write(i, 4, row['next_step'])
-        col_widths[4] = max(col_widths[4], len(row['next_step']))
-        worksheet.write(i, 5, row['actual_start_date'])
-        col_widths[5] = max(col_widths[5], len(str(row['actual_start_date'])))
-        worksheet.write(i, 6, row['actual_end_date'])
-        col_widths[6] = max(col_widths[6], len(str(row['actual_end_date'])))
-        worksheet.write(i, 7, row['days_since_last_activity'])
-        col_widths[7] = max(col_widths[7], len(str(row['days_since_last_activity'])))
-        worksheet.write_string(i, 8, notes.get(row['job_number'], ''), text_wrap)
-        col_widths[8] = 40  # 40 is a good width for 'Job Notes'
+        for j, col_name in enumerate(col_names):
+            if col_name == 'job_number':
+                col_data = row[col_name]
+                worksheet.write(i, j, col_data)
+                col_widths[j] = max(14, len(col_data))  # 14 is a good width for 'Job Number'
+            elif col_name == 'part_description':
+                col_data = row[col_name]
+                worksheet.write_string(i, j, col_data)
+                col_widths[j] = max(col_widths[j], len(col_data))
+            elif col_name == 'job_notes':
+                col_data = notes.get(row['job_number'], '')
+                worksheet.write_string(i, j, col_data, text_wrap)
+                col_widths[j] = 40  # 40 is a good width for 'Job Notes'
+            else:
+                col_data = row[col_name]
+                worksheet.write(i, j, col_data)
+                col_widths[j] = max(col_widths[j], len(str(col_data)))
     for i, width in enumerate(col_widths):
         worksheet.set_column(i, i, width)
-    worksheet.freeze_panes(1, 0)
-    worksheet.autofilter(0, 0, len(rows), len(headers) - 1)
+    table_options = {
+        'name': 'DaysSinceLastActivity',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
     workbook.close()
     response = flask.make_response(output.getvalue())
     response.headers.update({
@@ -481,7 +492,6 @@ def loading_summary_xlsx():
         'Qty Open', 'Start Date', 'End Date', 'Due Date', 'Next Step'
     ]
     col_widths = [len(v) for v in headers]
-    worksheet.write_row(0, 0, headers)
     for i, row in enumerate(rows, start=1):
         worksheet.write_row(i, 0, row.values())
         # find maximum column widths
@@ -489,6 +499,11 @@ def loading_summary_xlsx():
     for i, width in enumerate(col_widths):
         # set column widths
         worksheet.set_column(i, i, width)
+    table_options = {
+        'name': 'LoadingSummary',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
     workbook.close()
     response = flask.make_response(output.getvalue())
     response.headers.update({
@@ -531,7 +546,6 @@ def open_sales_report_xlsx():
         'Order Date', 'Ship By Date', 'Scheduled End Date', 'Vendor', 'Vendor PO', 'PO Date', 'PO Due Date', 'Job Notes'
     ]
     col_widths = [len(v) for v in headers]
-    worksheet.write_row(0, 0, headers)
     for i, row in enumerate(rows, start=1):
         worksheet.write_row(i, 0, row.values(), text_wrap)
         worksheet.write_string(i, len(headers) - 1, notes.get(row['job_number'], ''), text_wrap)
@@ -540,6 +554,11 @@ def open_sales_report_xlsx():
     for i, width in enumerate(col_widths):
         # set column widths
         worksheet.set_column(i, i, width)
+    table_options = {
+        'name': 'OpenSalesReport',
+        'columns': [{'header': h} for h in headers]
+    }
+    worksheet.add_table(0, 0, len(rows), len(headers) - 1, table_options)
     workbook.close()
     response = flask.make_response(output.getvalue())
     response.headers.update({
