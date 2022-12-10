@@ -126,6 +126,19 @@ class AppDatabase(fort.SQLiteDatabase):
         }
         self.u(sql, params)
 
+    def job_notes_get(self, job_number: str):
+        sql = '''
+            select notes
+            from job_notes
+            where job_number = :job_number
+        '''
+        params = {
+            'job_number': job_number
+        }
+        for row in self.q(sql, params):
+            return row['notes']
+        return ''
+
     def job_notes_list(self):
         sql = '''
             select job_number, notes
