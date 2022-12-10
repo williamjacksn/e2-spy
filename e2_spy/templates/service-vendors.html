@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% set title = 'Service vendors' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <a class="btn btn-outline-success" href="{{ url_for('service_vendors_xlsx') }}">
+                <i class="bi-file-earmark-spreadsheet"></i>
+                Export
+            </a>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="d-block table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Service Code</th>
+                    <th>Vendor Code</th>
+                    <th>Is Default</th>
+                    <th class="text-end">Lead Time (Days)</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.service_code }}</td>
+                        <td>{{ row.vendor_code }}</td>
+                        <td>{% if row.is_default == 1 %}Yes{% endif %}</td>
+                        <td class="text-end">{{ row.lead_time_days }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

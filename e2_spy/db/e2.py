@@ -304,3 +304,14 @@ class E2Database:
         '''
         params = (start_period, end_period)
         return [row.get('period_number') for row in self.q(sql, params)]
+
+    def service_vendors_list(self):
+        sql = '''
+            select s.service_code, o.vendor_code, o.is_default, o.lead_time_days
+            from service_code s
+            left join outside_service_header o on o.service_code_id = s.service_code_id
+            where s.company_code = 'spmtech'
+            and s.service_code is not null
+            order by s.service_code, o.is_default desc, o.vendor_code
+        '''
+        return self.q(sql)

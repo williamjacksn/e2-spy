@@ -416,6 +416,26 @@ def open_sales_report_xlsx():
     return _make_xlsx(rows, col_names, headers, 'OpenSalesReport', 'Open Sales Report.xlsx')
 
 
+@app.get('/service-vendors')
+def service_vendors():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.service_vendors_list()
+    return flask.render_template('service-vendors.html')
+
+
+@app.get('/service-vendors.xlsx')
+def service_vendors_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.service_vendors_list()
+    col_names = [
+        'service_code', 'vendor_code', 'is_default', 'lead_time_days'
+    ]
+    headers = [
+        'Service Code', 'Vendor Code', 'Is Default', 'Lead Time (Days)'
+    ]
+    return _make_xlsx(rows, col_names, headers, 'ServiceVendors', 'Service Vendors.xlsx')
+
+
 @app.get('/settings')
 def settings():
     """Render the /settings page"""
