@@ -202,6 +202,7 @@ class E2Database:
                     sum(total_actual_hours) total_actual_hours
                 from routing_header
                 where order_detail_id is not null
+                and status in ('Current', 'Finished')
                 group by order_detail_id
             )
             select
