@@ -4,9 +4,11 @@
 #
 #    pip-compile
 #
+blinker==1.6.2
+    # via flask
 click==8.1.3
     # via flask
-flask==2.2.3
+flask==2.3.1
     # via -r requirements.in
 fort==1.2.0
     # via -r requirements.in
@@ -22,7 +24,7 @@ pymssql==2.2.7
     # via -r requirements.in
 waitress==2.1.2
     # via -r requirements.in
-werkzeug==2.2.2
+werkzeug==2.3.0
     # via flask
 whitenoise==6.4.0
     # via -r requirements.in
