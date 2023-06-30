@@ -337,12 +337,12 @@ def job_performance_xlsx():
     end_date = str_to_date(flask.request.values.get('end_date', '2022-01-01'))
     rows = e2db.job_performance(start_date, end_date, get_all)
     headers = [
-        'Job Number', 'Part Number', 'Part Description', 'Product Code', 'Date Closed', 'Estimated Hours',
-        'Actual Hours', 'Performance', 'Job Notes'
+        'Job Number', 'Part Number', 'Part Description', 'Part Revision Date', 'Product Code', 'Date Closed',
+        'Estimated Hours', 'Actual Hours', 'Performance', 'Job Notes'
     ]
     col_names = [
-        'job_number', 'part_number', 'part_description', 'product_code', 'date_closed', 'total_estimated_hours',
-        'total_actual_hours', 'performance', 'job_notes'
+        'job_number', 'part_number', 'part_description', 'part_revision_date', 'product_code', 'date_closed',
+        'total_estimated_hours', 'total_actual_hours', 'performance', 'job_notes'
     ]
     if get_all:
         record_range = 'all'

@@ -219,9 +219,11 @@ class E2Database:
                 as int) performance,
                 o.product_code,
                 coalesce(h.total_estimated_hours, 0) total_estimated_hours,
-                coalesce(h.total_actual_hours, 0) total_actual_hours
+                coalesce(h.total_actual_hours, 0) total_actual_hours,
+                cast(p.revision_date as date) part_revision_date
             from order_detail o
             left join h on h.order_detail_id = o.order_detail_id
+            left join part_number p on p.part_number_id = o.part_number_id
             where o.company_code = 'spmtech'
             and o.status = 'closed'
             {date_closed_filter}
