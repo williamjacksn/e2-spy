@@ -8,14 +8,10 @@ blinker==1.6.2
     # via flask
 click==8.1.3
     # via flask
-colorama==0.4.6
-    # via click
-flask==2.3.2
+flask==2.3.3
     # via -r requirements.in
 fort==1.2.0
     # via -r requirements.in
-importlib-metadata==6.7.0
-    # via flask
 itsdangerous==2.1.2
     # via flask
 jinja2==3.1.2
@@ -28,11 +24,9 @@ pymssql==2.2.7
     # via -r requirements.in
 waitress==2.1.2
     # via -r requirements.in
-werkzeug==2.3.6
+werkzeug==2.3.7
     # via flask
 whitenoise==6.5.0
     # via -r requirements.in
 xlsxwriter==3.1.2
     # via -r requirements.in
-zipp==3.15.0
-    # via importlib-metadata
