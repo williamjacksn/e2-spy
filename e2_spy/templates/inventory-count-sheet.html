@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% set title = 'Inventory Count Sheet' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <form class="g-1 row">
+                <div class="col-auto">
+                    <div class="dropdown text-nowrap">
+                        <button class="btn btn-outline-primary dropdown-toggle" data-bs-auto-close="outside"
+                                data-bs-toggle="dropdown" type="button">
+                            Product codes
+                        </button>
+                        <div class="dropdown-menu p-2">
+                            <div class="mb-3">
+                            {% for c in g.product_codes %}
+                                <div class="form-check">
+                                    <input class="form-check-input" id="check-{{ c | replace(' ', '-') | lower }}"
+                                           name="product-code" type="checkbox" value="{{ c }}"
+                                           {{ 'checked' if c in g.selected_product_codes }}>
+                                    <label class="form-check-label" for="check-{{ c | replace(' ', '-') | lower }}">
+                                        {{ c }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            </div>
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi-funnel"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" formaction="{{ url_for('inventory_count_sheet_xlsx') }}"
+                            type="submit">
+                        <i class="bi-file-earmark-spreadsheet"></i>
+                        Export
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Part number</th>
+                    <th>Revision</th>
+                    <th>Part description</th>
+                    <th>Product code</th>
+                    <th>Location</th>
+                    <th class="text-end">Quantity</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.part_number }}</td>
+                        <td>{{ row.revision }}</td>
+                        <td>{{ row.part_description }}</td>
+                        <td>{{ row.product_code }}</td>
+                        <td>{{ row.location }}</td>
+                        <td class="text-end">{{ row.quantity }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

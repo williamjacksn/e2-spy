@@ -1,5 +1,6 @@
 import contextlib
 import datetime
+import decimal
 import pymssql
 
 
@@ -188,6 +189,60 @@ class E2Database:
             order by a.gl_account
         '''
         return self.q(sql, params)
+
+    def remove_exponent(self, d):
+        return d.quantize(decimal.Decimal(1)) if d == d.to_integral() else d.normalize()
+
+    def product_codes(self):
+        sql = '''
+            select distinct product_code
+            from part_number
+            where product_code is not null and product_code <> '' and company_code = 'SPMTECH'
+            order by product_code
+        '''
+        return [row['product_code'] for row in self.q(sql)]
+
+    def inventory_count_sheet(self, product_codes: list[str]):
+        where_clause = ''
+        params = None
+        if len(product_codes) > 0:
+            where_clause = 'where p.product_code in %s'
+            params = (product_codes,)
+        sql = f'''
+            select
+                l.part_number,
+                l.revision,
+                l.location,
+                coalesce(p.description, '') part_description,
+                coalesce(p.product_code, '') product_code,
+                l.quantity
+            from (
+                select
+                    part_number_id,
+                    part_number,
+                    revision_level revision,
+                    material_location_code location,
+                    sum(stocking_quantity) quantity
+                from order_material
+                where part_number <> ''
+                and material_location_code <> ''
+                and company_code = 'SPMTECH'
+                and warehouse_code = 'MAIN'
+                and status = 'Available'
+                group by part_number_id, part_number, revision_level, material_location_code
+            ) l
+            left join part_number p on p.part_number_id = l.part_number_id
+            {where_clause}
+            order by l.part_number, l.revision, l.location
+        '''
+        return [{
+            'part_number': r['part_number'],
+            'revision': r['revision'],
+            'location': r['location'],
+            'part_description': r['part_description'],
+            'product_code': r['product_code'],
+            'quantity': self.remove_exponent(decimal.Decimal(r['quantity'])),
+        } for r in self.q(sql, params)]
 
     def job_performance(self, start_date: datetime.date, end_date: datetime.date, get_all: bool = False):
         if get_all:

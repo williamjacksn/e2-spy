@@ -285,6 +285,25 @@ def income_statements_xlsx():
     return _make_xlsx(rows, col_names, headers, 'IncomeStatement', filename)
 
 
+@app.get('/inventory-count-sheet')
+def inventory_count_sheet():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.selected_product_codes = flask.request.values.getlist('product-code')
+    flask.g.rows = e2db.inventory_count_sheet(flask.g.selected_product_codes)
+    flask.g.product_codes = e2db.product_codes()
+    return flask.render_template('inventory-count-sheet.html')
+
+
+@app.get('/inventory-count-sheet.xlsx')
+def inventory_count_sheet_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    selected_product_codes = flask.request.values.getlist('product-code')
+    rows = e2db.inventory_count_sheet(selected_product_codes)
+    headers = ['Part number', 'Revision', 'Part description', 'Product code', 'Location', 'Quantity']
+    col_names = ['part_number', 'revision', 'part_description', 'product_code', 'location', 'quantity']
+    return _make_xlsx(rows, col_names, headers, 'InventoryCountSheet', 'Inventory Count Sheet.xlsx')
+
+
 @app.post('/job-notes')
 def job_notes():
     for k, v in flask.request.values.lists():
