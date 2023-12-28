@@ -49,7 +49,7 @@ def _make_xlsx(data, col_names, headers, table_name, filename):
             elif col_name == 'part_description':
                 col_data = row[col_name]
                 worksheet.write_string(i, j, col_data)
-                col_widths[j] = max(col_widths[j], len(col_data))
+                col_widths[j] = 100
             else:
                 col_data = row[col_name]
                 worksheet.write(i, j, col_data)
