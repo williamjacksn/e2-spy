@@ -1,0 +1,10 @@
+<input name="job_number" type="hidden" value="{{ g.job_number }}">
+<div class="align-items-start d-flex justify-content-between">
+    <p>
+        {{ (g.job_notes or '') | replace('\n', '<br>' | safe) }}
+    </p>
+    <button class="btn btn-sm btn-outline-primary slow" hx-include="closest td"
+            hx-post="{{ url_for('job_notes_form') }}" hx-target="closest td">
+        <i class="bi-pencil-fill"></i>
+    </button>
+</div>

@@ -139,13 +139,6 @@ class AppDatabase(fort.SQLiteDatabase):
             return row['notes']
         return ''
 
-    def job_notes_list(self):
-        sql = '''
-            select job_number, notes
-            from job_notes
-        '''
-        return {r['job_number']: r['notes'] for r in self.q(sql)}
-
     def job_notes_update(self, job_number: str, notes: str):
         sql = '''
             insert into job_notes (job_number, notes) values (:job_number, :notes)

@@ -170,7 +170,6 @@ def action_summary():
 def closed_jobs():
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.closed_jobs()
-    flask.g.job_notes = flask.g.db.job_notes_list()
     return flask.render_template('closed-jobs.html')
 
 
@@ -209,7 +208,6 @@ def contacts_xlsx():
 def days_since_last_activity():
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.days_since_last_activity()
-    flask.g.job_notes = flask.g.db.job_notes_list()
     return flask.render_template('days-since-last-activity.html')
 
 
@@ -304,19 +302,24 @@ def inventory_count_sheet_xlsx():
     return _make_xlsx(rows, col_names, headers, 'InventoryCountSheet', 'Inventory Count Sheet.xlsx')
 
 
-@app.post('/job-notes')
-def job_notes():
-    for k, v in flask.request.values.lists():
-        log.debug(f'{k}: {v}')
+@app.post('/job-notes/form')
+def job_notes_form():
     db: AppDatabase = flask.g.db
-    job_number = flask.request.values.get('job_number')
-    notes = flask.request.values.get('notes')
-    if notes:
-        db.job_notes_update(job_number, notes)
+    flask.g.job_number = flask.request.values.get('job_number')
+    flask.g.job_notes = db.job_notes_get(flask.g.job_number)
+    return flask.render_template('job-notes-form.html')
+
+
+@app.post('/job-notes/in-place')
+def job_notes_in_place():
+    db: AppDatabase = flask.g.db
+    flask.g.job_number = flask.request.values.get('job_number')
+    flask.g.job_notes = flask.request.values.get('notes')
+    if flask.g.job_notes:
+        db.job_notes_update(flask.g.job_number, flask.g.job_notes)
     else:
-        db.job_notes_delete(job_number)
-    next_view = flask.request.values.get('next_view')
-    return flask.redirect(flask.url_for(next_view))
+        db.job_notes_delete(flask.g.job_number)
+    return flask.render_template('job-notes-in-place.html')
 
 
 @app.get('/job-performance')
@@ -344,7 +347,6 @@ def job_performance():
     flask.g.start_date = start_date
     flask.g.end_date = end_date
     flask.g.rows = e2db.job_performance(start_date, end_date)
-    flask.g.job_notes = flask.g.db.job_notes_list()
     return flask.render_template('job-performance.html')
 
 
@@ -414,7 +416,6 @@ def lock():
 def open_sales_report():
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.open_sales_report()
-    flask.g.job_notes = flask.g.db.job_notes_list()
     return flask.render_template('open-sales-report.html')
 
 

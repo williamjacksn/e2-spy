@@ -1,0 +1,10 @@
+<form hx-post="{{ url_for('job_notes_in_place') }}" hx-target="closest td">
+    <input name="job_number" type="hidden" value="{{ g.job_number }}">
+    <div class="mb-2">
+        <textarea class="form-control" name="notes" rows="10">{{ g.job_notes }}</textarea>
+    </div>
+    <button class="btn btn-outline-success me-2" type="submit">
+        Save
+    </button>
+    <div class="htmx-indicator spinner-border spinner-border-sm"></div>
+</form>

@@ -25,27 +25,27 @@
             <table class="table table-responsive table-striped">
                 <thead class="bg-dark position-sticky text-light top-0">
                     <tr>
-                        <th class="bg-dark position-sticky text-light top-0">Job Number</th>
-                        <th class="bg-dark position-sticky text-light top-0">Priority</th>
-                        <th class="bg-dark position-sticky text-light top-0">Order Type</th>
-                        <th class="bg-dark position-sticky text-light top-0">Status</th>
-                        <th class="bg-dark position-sticky text-light top-0">Parent Job Number</th>
-                        <th class="bg-dark position-sticky text-light top-0">Part Number</th>
-                        <th class="bg-dark position-sticky text-light top-0">Part Description</th>
-                        <th class="bg-dark position-sticky text-light top-0">Current Step</th>
-                        <th class="bg-dark position-sticky text-light top-0">Qty to Make</th>
-                        <th class="bg-dark position-sticky text-light top-0">Qty Open</th>
-                        <th class="bg-dark position-sticky text-light top-0">Customer Code</th>
-                        <th class="bg-dark position-sticky text-light top-0">Customer PO</th>
-                        <th class="bg-dark position-sticky text-light text-end top-0">Sales Amount</th>
-                        <th class="bg-dark position-sticky text-light top-0">Order Date</th>
-                        <th class="bg-dark position-sticky text-light top-0">Ship By Date</th>
-                        <th class="bg-dark position-sticky text-light top-0">Scheduled End Date</th>
-                        <th class="bg-dark position-sticky text-light top-0">Vendor</th>
-                        <th class="bg-dark position-sticky text-light top-0">Vendor PO</th>
-                        <th class="bg-dark position-sticky text-light top-0">PO Date</th>
-                        <th class="bg-dark position-sticky text-light top-0">PO Due Date</th>
-                        <th class="bg-dark position-sticky text-light top-0" colspan="2">Job Notes</th>
+                        <th>Job Number</th>
+                        <th>Priority</th>
+                        <th>Order Type</th>
+                        <th>Status</th>
+                        <th>Parent Job Number</th>
+                        <th>Part Number</th>
+                        <th>Part Description</th>
+                        <th>Current Step</th>
+                        <th>Qty to Make</th>
+                        <th>Qty Open</th>
+                        <th>Customer Code</th>
+                        <th>Customer PO</th>
+                        <th class="text-end">Sales Amount</th>
+                        <th>Order Date</th>
+                        <th>Ship By Date</th>
+                        <th>Scheduled End Date</th>
+                        <th>Vendor</th>
+                        <th>Vendor PO</th>
+                        <th>PO Date</th>
+                        <th>PO Due Date</th>
+                        <th>Job Notes</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,24 +73,11 @@
                         <td>{{ row.vendor_po.splitlines() | join('<br>' | safe) if row.vendor_po }}</td>
                         <td>{{ row.po_date.splitlines() | join('<br>' | safe) if row.po_date }}</td>
                         <td>{{ row.po_due_date.splitlines() | join('<br>' | safe) if row.po_due_date }}</td>
-                        <td>{{ (g.job_notes.get(row.job_number) or '') | replace('\n', '<br>' | safe) }}</td>
-                        <td>
-                            <a class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                               data-job-number="{{ row.job_number }}" data-next-view="open_sales_report"
-                               data-notes="{{ g.job_notes.get(row.job_number) or '' }}" href="#modal-job-notes">
-                                <i class="bi-pencil-fill"></i>
-                            </a>
-                        </td>
+                        <td>{% include 'includes/job-notes-initial.html' %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-
-    {% include 'includes/modal-job-notes.html' %}
-{% endblock %}
-
-{% block end_of_body %}
-    <script src="{{ url_for('static', filename='modal-job-notes.js') }}"></script>
 {% endblock %}
