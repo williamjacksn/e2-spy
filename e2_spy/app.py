@@ -359,11 +359,11 @@ def job_performance_xlsx():
     rows = e2db.job_performance(start_date, end_date, get_all)
     headers = [
         'Job Number', 'Part Number', 'Part Description', 'Part Revision Date', 'Product Code', 'Date Closed',
-        'Estimated Hours', 'Actual Hours', 'Performance', 'Job Notes'
+        'Estimated Hours', 'Actual Hours', 'Qty Ordered', 'Performance', 'Job Notes'
     ]
     col_names = [
         'job_number', 'part_number', 'part_description', 'part_revision_date', 'product_code', 'date_closed',
-        'total_estimated_hours', 'total_actual_hours', 'performance', 'job_notes'
+        'total_estimated_hours', 'total_actual_hours', 'quantity_ordered', 'performance', 'job_notes'
     ]
     if get_all:
         record_range = 'all'

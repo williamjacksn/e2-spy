@@ -60,6 +60,7 @@
                     <th>Date Closed</th>
                     <th>Estimated Hours</th>
                     <th>Actual Hours</th>
+                    <th>Qty Ordered</th>
                     <th>Performance</th>
                     <th>Job Notes</th>
                 </tr>
@@ -70,11 +71,12 @@
                         <td>{{ row.job_number }}</td>
                         <td>{{ row.part_number }}</td>
                         <td>{{ row.part_description }}</td>
-                        <td>{{ row.part_revision_date or '' }}</td>
+                        <td class="text-nowrap">{{ row.part_revision_date or '' }}</td>
                         <td>{{ row.product_code }}</td>
-                        <td>{{ row.date_closed }}</td>
+                        <td class="text-nowrap">{{ row.date_closed }}</td>
                         <td>{{ '{:,.2f}'.format(row.total_estimated_hours) }}</td>
                         <td>{{ '{:,.2f}'.format(row.total_actual_hours) }}</td>
+                        <td>{{ row.quantity_ordered }}</td>
                         <td {% if row.performance > 100 %}class="table-danger"{% endif %}>{{ row.performance }}%</td>
                         <td>{% include 'includes/job-notes-initial.html' %}</td>
                     </tr>
