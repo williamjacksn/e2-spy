@@ -60,7 +60,7 @@
                     <th>Date Closed</th>
                     <th>Estimated Hours</th>
                     <th>Actual Hours</th>
-                    <th>Qty Ordered</th>
+                    <th>Qty to Make</th>
                     <th>Performance</th>
                     <th>Job Notes</th>
                 </tr>
@@ -76,7 +76,7 @@
                         <td class="text-nowrap">{{ row.date_closed }}</td>
                         <td>{{ '{:,.2f}'.format(row.total_estimated_hours) }}</td>
                         <td>{{ '{:,.2f}'.format(row.total_actual_hours) }}</td>
-                        <td>{{ row.quantity_ordered }}</td>
+                        <td>{{ row.quantity_to_make }}</td>
                         <td {% if row.performance > 100 %}class="table-danger"{% endif %}>{{ row.performance }}%</td>
                         <td>{% include 'includes/job-notes-initial.html' %}</td>
                     </tr>
