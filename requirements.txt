@@ -32,5 +32,5 @@ whitenoise==6.7.0
     # via -r requirements.in
 xlsxwriter==3.2.0
     # via -r requirements.in
-zipp==3.20.0
+zipp==3.20.1
     # via importlib-metadata
