@@ -12,7 +12,7 @@ flask==3.0.3
     # via -r requirements.in
 fort==2024.2
     # via -r requirements.in
-importlib-metadata==8.4.0
+importlib-metadata==8.5.0
     # via flask
 itsdangerous==2.2.0
     # via flask
