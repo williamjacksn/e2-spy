@@ -202,12 +202,20 @@ class E2Database:
         '''
         return [row['product_code'] for row in self.q(sql)]
 
-    def inventory_count_sheet(self, product_codes: list[str]):
-        where_clause = ''
+    def inventory_count_sheet(
+            self, product_codes: list[str], include_active_parts: bool = True, include_inactive_parts: bool = True
+    ):
+        where_clause = 'where 1=1'
         params = None
         if len(product_codes) > 0:
-            where_clause = 'where p.product_code in %s'
+            where_clause = f'{where_clause} and p.product_code in %s'
             params = (product_codes,)
+
+        if include_active_parts and not include_inactive_parts:
+            where_clause = f'{where_clause} and p.active = 1'
+        elif include_inactive_parts and not include_active_parts:
+            where_clause = f'{where_clause} and (p.active = 0 or p.active is null)'
+
         sql = f'''
             select
                 l.part_number,
@@ -215,7 +223,8 @@ class E2Database:
                 l.location,
                 coalesce(p.description, '') part_description,
                 coalesce(p.product_code, '') product_code,
-                l.quantity
+                l.quantity,
+                coalesce(p.active, 0) part_active
             from (
                 select
                     part_number_id,
@@ -238,6 +247,7 @@ class E2Database:
         return [{
             'part_number': r['part_number'],
             'revision': r['revision'],
+            'part_active': bool(r['part_active']),
             'location': r['location'],
             'part_description': r['part_description'],
             'product_code': r['product_code'],

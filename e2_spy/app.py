@@ -46,6 +46,10 @@ def _make_xlsx(data, col_names, headers, table_name, filename):
                 col_data = row[col_name]
                 worksheet.write(i, j, col_data)
                 col_widths[j] = max(14, len(col_data))  # 14 is a good width for 'Job Number'
+            elif col_name == 'part_active':
+                col_data = row[col_name]
+                worksheet.write(i, j, col_data)
+                col_widths[j] = 9  # column header is 'Active', it is longer than any value (TRUE or FALSE)
             elif col_name == 'part_description':
                 col_data = row[col_name]
                 worksheet.write_string(i, j, col_data)
@@ -287,7 +291,13 @@ def income_statements_xlsx():
 def inventory_count_sheet():
     e2db = get_e2_database(flask.g.db)
     flask.g.selected_product_codes = flask.request.values.getlist('product-code')
-    flask.g.rows = e2db.inventory_count_sheet(flask.g.selected_product_codes)
+    flask.g.include_active_parts = 'include-active-parts' in flask.request.values
+    flask.g.include_inactive_parts = 'include-inactive-parts' in flask.request.values
+    if not (flask.g.include_active_parts or flask.g.include_inactive_parts):
+        flask.g.include_active_parts = flask.g.include_inactive_parts = True
+    flask.g.rows = e2db.inventory_count_sheet(
+        flask.g.selected_product_codes, flask.g.include_active_parts, flask.g.include_inactive_parts
+    )
     flask.g.product_codes = e2db.product_codes()
     return flask.render_template('inventory-count-sheet.html')
 
@@ -296,9 +306,13 @@ def inventory_count_sheet():
 def inventory_count_sheet_xlsx():
     e2db = get_e2_database(flask.g.db)
     selected_product_codes = flask.request.values.getlist('product-code')
-    rows = e2db.inventory_count_sheet(selected_product_codes)
-    headers = ['Part number', 'Revision', 'Part description', 'Product code', 'Location', 'Quantity']
-    col_names = ['part_number', 'revision', 'part_description', 'product_code', 'location', 'quantity']
+    include_active_parts = 'include-active-parts' in flask.request.values
+    include_inactive_parts = 'include-inactive-parts' in flask.request.values
+    if not (include_active_parts or include_inactive_parts):
+        include_active_parts = include_inactive_parts = True
+    rows = e2db.inventory_count_sheet(selected_product_codes, include_active_parts, include_inactive_parts)
+    headers = ['Part number', 'Revision', 'Active', 'Part description', 'Product code', 'Location', 'Quantity']
+    col_names = ['part_number', 'revision', 'part_active', 'part_description', 'product_code', 'location', 'quantity']
     return _make_xlsx(rows, col_names, headers, 'InventoryCountSheet', 'Inventory Count Sheet.xlsx')
 
 

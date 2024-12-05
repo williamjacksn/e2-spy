@@ -16,29 +16,50 @@
             <form class="g-1 row">
                 <div class="col-auto">
                     <div class="dropdown text-nowrap">
-                        <button class="btn btn-outline-primary dropdown-toggle" data-bs-auto-close="outside"
+                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-auto-close="outside"
                                 data-bs-toggle="dropdown" type="button">
                             Product codes
                         </button>
                         <div class="dropdown-menu p-2">
-                            <div class="mb-3">
-                            {% for c in g.product_codes %}
-                                <div class="form-check">
-                                    <input class="form-check-input" id="check-{{ c | replace(' ', '-') | lower }}"
-                                           name="product-code" type="checkbox" value="{{ c }}"
-                                           {{ 'checked' if c in g.selected_product_codes }}>
-                                    <label class="form-check-label" for="check-{{ c | replace(' ', '-') | lower }}">
-                                        {{ c }}
-                                    </label>
-                                </div>
-                            {% endfor %}
+                        {% for c in g.product_codes %}
+                            <div class="form-check">
+                                <input class="form-check-input" id="check-{{ c | replace(' ', '-') | lower }}"
+                                        name="product-code" type="checkbox" value="{{ c }}"
+                                        {{ 'checked' if c in g.selected_product_codes }}>
+                                <label class="form-check-label" for="check-{{ c | replace(' ', '-') | lower }}">
+                                    {{ c }}
+                                </label>
                             </div>
-                            <button class="btn btn-outline-primary" type="submit">
-                                <i class="bi-funnel"></i>
-                                Filter
-                            </button>
+                        {% endfor %}
                         </div>
                     </div>
+                </div>
+                <div class="col-auto">
+                    <div class="dropdown text-nowrap">
+                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-auto-close="outside"
+                                data-bs-toggle="dropdown" type="button">
+                            Part status
+                        </button>
+                        <div class="dropdown-menu p-2">
+                            <div class="form-check">
+                                <input class="form-check-input" id="include-active-parts" name="include-active-parts"
+                                       type="checkbox" {{ 'checked' if g.include_active_parts }}>
+                                <label class="form-check-label" for="include-active-parts">Show active parts</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" id="include-inactive-parts"
+                                       name="include-inactive-parts" type="checkbox"
+                                       {{ 'checked' if g.include_inactive_parts }}>
+                                <label class="form-check-label" for="include-inactive-parts">Show inactive parts</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" type="submit">
+                        <i class="bi-arrow-clockwise"></i>
+                        Apply
+                    </button>
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-outline-success" formaction="{{ url_for('inventory_count_sheet_xlsx') }}"
@@ -58,6 +79,7 @@
                 <tr>
                     <th>Part number</th>
                     <th>Revision</th>
+                    <th class="text-center">Active</th>
                     <th>Part description</th>
                     <th>Product code</th>
                     <th>Location</th>
@@ -69,6 +91,7 @@
                     <tr>
                         <td>{{ row.part_number }}</td>
                         <td>{{ row.revision }}</td>
+                        <td class="text-center">{% if row.part_active %}<i class="bi-check-lg"></i>{% endif %}</td>
                         <td>{{ row.part_description }}</td>
                         <td>{{ row.product_code }}</td>
                         <td>{{ row.location }}</td>
