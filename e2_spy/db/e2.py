@@ -8,13 +8,6 @@ class E2Database:
     def __init__(self, cnx_details: dict):
         self.cnx = pymssql.connect(**cnx_details, as_dict=True)
 
-    def q(self, sql: str, params: tuple = None):
-        if params is None:
-            params = tuple()
-        with contextlib.closing(self.cnx.cursor()) as cur:
-            cur.execute(sql, params)
-            return cur.fetchall()
-
     def action_summary(self, start_date: datetime.date, end_date: datetime.date, users: list[str]):
         sql = '''
             select
@@ -98,15 +91,6 @@ class E2Database:
         '''
         return self.q(sql)
 
-    def get_followup_user_code_list(self) -> list[str]:
-        sql = '''
-            select distinct followup_by_user_code
-            from action
-            where len(followup_by_user_code) > 0
-            order by followup_by_user_code
-        '''
-        return [row.get('followup_by_user_code') for row in self.q(sql)]
-
     def get_departments_list(self) -> list[str]:
         sql = '''
             select distinct department_name
@@ -115,6 +99,15 @@ class E2Database:
             order by department_name
         '''
         return [row.get('department_name') for row in self.q(sql)]
+
+    def get_followup_user_code_list(self) -> list[str]:
+        sql = '''
+            select distinct followup_by_user_code
+            from action
+            where len(followup_by_user_code) > 0
+            order by followup_by_user_code
+        '''
+        return [row.get('followup_by_user_code') for row in self.q(sql)]
 
     def get_loading_summary(self, departments: list[str]):
         sql = '''
@@ -189,18 +182,6 @@ class E2Database:
             order by a.gl_account
         '''
         return self.q(sql, params)
-
-    def remove_exponent(self, d):
-        return d.quantize(decimal.Decimal(1)) if d == d.to_integral() else d.normalize()
-
-    def product_codes(self):
-        sql = '''
-            select distinct product_code
-            from part_number
-            where product_code is not null and product_code <> '' and company_code = 'SPMTECH'
-            order by product_code
-        '''
-        return [row['product_code'] for row in self.q(sql)]
 
     def inventory_count_sheet(
             self, product_codes: list[str], include_active_parts: bool = True, include_inactive_parts: bool = True
@@ -373,6 +354,25 @@ class E2Database:
         '''
         params = (start_period, end_period)
         return [row.get('period_number') for row in self.q(sql, params)]
+
+    def product_codes(self):
+        sql = '''
+            select distinct product_code
+            from part_number
+            where product_code is not null and product_code <> '' and company_code = 'SPMTECH'
+            order by product_code
+        '''
+        return [row['product_code'] for row in self.q(sql)]
+
+    def q(self, sql: str, params: tuple = None):
+        if params is None:
+            params = tuple()
+        with contextlib.closing(self.cnx.cursor()) as cur:
+            cur.execute(sql, params)
+            return cur.fetchall()
+
+    def remove_exponent(self, d):
+        return d.quantize(decimal.Decimal(1)) if d == d.to_integral() else d.normalize()
 
     def service_vendors_list(self):
         sql = '''
