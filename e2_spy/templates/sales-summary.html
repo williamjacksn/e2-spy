@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% set title = 'Sales Summary' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <form class="g-1 row">
+                <div class="col-auto">
+                    <div class="input-group">
+                        <span class="input-group-text">invoice date between</span>
+                        <input aria-label="Start date" class="form-control" name="start_date" type="date"
+                                value="{{ g.start_date }}">
+                        <span class="input-group-text">and</span>
+                        <input aria-label="End date" class="form-control" name="end_date" type="date"
+                                value="{{ g.end_date }}">
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" type="submit">
+                        <i class="bi-arrow-clockwise"></i>
+                        Apply
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success" formaction="{{ url_for('sales_summary_xlsx') }}"
+                            name="get_all" type="submit" value="false">
+                        <i class="bi-file-earmark-spreadsheet"></i>
+                        Export
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Invoice Number</th>
+                    <th>Invoice Date</th>
+                    <th>Period</th>
+                    <th>Customer Code</th>
+                    <th>Customer Name</th>
+                    <th>Job Number</th>
+                    <th>Market</th>
+                    <th>Part Number</th>
+                    <th>Revision</th>
+                    <th>Qty Ordered</th>
+                    <th>Qty Shipped</th>
+                    <th>Unit</th>
+                    <th class="text-end">Unit Price</th>
+                    <th>Product Code</th>
+                    <th>Salesman</th>
+                    <th>Part Description</th>
+                    <th>GL Account</th>
+                    <th>GL Account Description</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td>{{ row.invoice_number }}</td>
+                        <td class="text-nowrap">{{ row.invoice_date }}</td>
+                        <td>{{ row.period }}</td>
+                        <td>{{ row.customer_code }}</td>
+                        <td>{{ row.customer_name }}</td>
+                        <td class="text-nowrap">{{ row.job_number }}</td>
+                        <td>{{ row.market }}</td>
+                        <td>{{ row.part_number }}</td>
+                        <td>{{ row.revision }}</td>
+                        <td>{{ row.qty_ordered }}</td>
+                        <td>{{ row.qty_shipped }}</td>
+                        <td>{{ row.unit }}</td>
+                        <td class="text-end">${{ '{:,.2f}'.format(row.unit_price) }}</td>
+                        <td>{{ row.product_code }}</td>
+                        <td>{{ row.salesman }}</td>
+                        <td>{{ row.part_description }}</td>
+                        <td>{{ row.gl_account }}</td>
+                        <td>{{ row.gl_account_description }}</td>
+                        <td class="text-end">${{ '{:,.2f}'.format(row.amount) }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

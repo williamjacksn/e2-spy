@@ -1,3 +1,4 @@
+import calendar
 import config
 import contextlib
 import datetime
@@ -30,11 +31,16 @@ def _make_xlsx(data, col_names, headers, table_name, filename):
     }
     workbook = xlsxwriter.Workbook(output, workbook_options)
     text_wrap = workbook.add_format({'text_wrap': True})
+    money = workbook.add_format({'num_format': '$#,##0.00;[Red]$#,##0.00'})
     worksheet = workbook.add_worksheet()
     col_widths = [len(h) for h in headers]
     for i, row in enumerate(data, start=1):
         for j, col_name in enumerate(col_names):
-            if col_name == 'gl_account':
+            if col_name in ('amount', 'unit_price'):
+                col_data  = row[col_name]
+                worksheet.write_number(i, j, col_data, money)
+                col_widths[j] = max(col_widths[j], len(str(col_data)))
+            elif col_name == 'gl_account':
                 col_data = row[col_name]
                 worksheet.write(i, j, col_data)
                 col_widths[j] = max(10, len(str(col_data)))
@@ -464,6 +470,70 @@ def open_sales_report_xlsx():
         'Order Date', 'Ship By Date', 'Scheduled End Date', 'Vendor', 'Vendor PO', 'PO Date', 'PO Due Date', 'Job Notes'
     ]
     return _make_xlsx(rows, col_names, headers, 'OpenSalesReport', 'Open Sales Report.xlsx')
+
+
+def sales_summary_dates(start_date, end_date):
+    if start_date is None:
+        if end_date is None:
+            # no start_date or end_date: use the current month
+            start_date = datetime.date.today().replace(day=1)
+            end_date = start_date.replace(day=calendar.monthrange(start_date.year, start_date.month)[1])
+        else:
+            # end_date without start_date, start at beginning of the month of end_date
+            start_date = end_date.replace(day=1)
+    else:
+        if end_date is None:
+            # start_date without end_date: end at end of month of start_date
+            end_date = start_date.replace(day=calendar.monthrange(start_date.year, start_date.month)[1])
+        elif start_date > end_date:
+            # start_date must always be earlier than end_date
+            start_date, end_date = end_date, start_date
+    return start_date, end_date
+
+
+@app.get('/sales-summary')
+def sales_summary():
+    e2db = get_e2_database(flask.g.db)
+    try:
+        start_date = str_to_date(flask.request.values.get('start_date'))
+    except (TypeError, ValueError):
+        start_date = None
+    try:
+        end_date = str_to_date(flask.request.values.get('end_date'))
+    except (TypeError, ValueError):
+        end_date = None
+    start_date, end_date = sales_summary_dates(start_date, end_date)
+    flask.g.start_date = start_date
+    flask.g.end_date = end_date
+    flask.g.rows = e2db.sales_summary(start_date, end_date)
+    return flask.render_template('sales-summary.html')
+
+
+@app.get('/sales-summary.xlsx')
+def sales_summary_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    try:
+        start_date = str_to_date(flask.request.values.get('start_date'))
+    except (TypeError, ValueError):
+        start_date = None
+    try:
+        end_date = str_to_date(flask.request.values.get('end_date'))
+    except (TypeError, ValueError):
+        end_date = None
+    start_date, end_date = sales_summary_dates(start_date, end_date)
+    headers = [
+        'Invoice Number', 'Invoice Date', 'Period', 'Customer Code', 'Customer Name', 'Job Number', 'Market',
+        'Part Number', 'Revision', 'Qty Ordered', 'Qty Shipped', 'Unit', 'Unit Price', 'Product Code', 'Salesman',
+        'Part Description', 'GL Account', 'GL Account Description', 'Amount'
+    ]
+    col_names = [
+        'invoice_number', 'invoice_date', 'period', 'customer_code', 'customer_name', 'job_number', 'market',
+        'part_number', 'revision', 'qty_ordered', 'qty_shipped', 'unit', 'unit_price', 'product_code', 'salesman',
+        'part_description', 'gl_account', 'gl_account_description', 'amount'
+    ]
+    rows = e2db.sales_summary(start_date, end_date)
+    return _make_xlsx(rows, col_names, headers, 'SalesSummary', f'Sales Summary ({start_date} to {end_date}).xlsx')
+
 
 
 @app.get('/service-vendors')

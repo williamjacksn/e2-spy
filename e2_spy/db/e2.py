@@ -390,6 +390,64 @@ class E2Database:
     def remove_exponent(self, d):
         return d.quantize(decimal.Decimal(1)) if d == d.to_integral() else d.normalize()
 
+    def sales_summary(self, start_date: datetime.date, end_date: datetime.date):
+        sql = '''
+            select
+                bh.invoice_number,
+                cast(bh.invoice_date as date) invoice_date,
+                bh.period_number period,
+                bh.customer_code,
+                bh.customer_name,
+                bd.job_number,
+                coalesce(bd.work_code, 'UNSPECIFIED') market,
+                bd.part_number,
+                bd.revision_level revision,
+                bd.quantity_ordered qty_ordered,
+                bd.quantity_shipped qty_shipped,
+                bd.unit_of_measure unit,
+                bd.unit_price,
+                bd.product_code,
+                coalesce(cd.salesman_code, 'UNSPECIFIED') salesman,
+                bd.part_description,
+                ad.gl_account,
+                ga.description gl_account_description,
+                ad.amount_credit amount
+            from billing_header bh
+            left join billing_detail bd on bd.billing_header_id = bh.billing_header_id
+            left join commission_distribution cd on cd.billing_detail_id = bd.billing_detail_id
+            left join accounting_distribution ad on ad.billing_detail_id = bd.billing_detail_id
+                and ad.account_type in ('miscellaneous charge', 'total')
+            left join gl_account ga on ga.gl_account = ad.gl_account
+            where bh.company_code = 'spmtech' and bh.invoice_number is not null
+            and cast(bh.invoice_date as date) between %s and %s
+            order by bh.invoice_number, bd.item_number
+        '''
+        params = (
+            start_date,
+            end_date,
+        )
+        return [{
+            'invoice_number': r['invoice_number'],
+            'invoice_date': r['invoice_date'],
+            'period': r['period'],
+            'customer_code': r['customer_code'],
+            'customer_name': r['customer_name'],
+            'job_number': r['job_number'],
+            'market': r['market'],
+            'part_number': r['part_number'],
+            'revision': r['revision'],
+            'qty_ordered': int(r['qty_ordered']),
+            'qty_shipped': int(r['qty_shipped']),
+            'unit': r['unit'],
+            'unit_price': r['unit_price'],
+            'product_code': r['product_code'],
+            'salesman': r['salesman'],
+            'part_description': r['part_description'],
+            'gl_account': r['gl_account'] if '.' in r['gl_account'] else f'{r['gl_account']}.000',
+            'gl_account_description': r['gl_account_description'],
+            'amount': r['amount'],
+        } for r in self.q(sql, params)]
+
     def service_vendors_list(self):
         sql = '''
             select s.service_code, o.vendor_code, o.is_default, o.lead_time_days
