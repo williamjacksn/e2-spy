@@ -66,6 +66,24 @@ class E2Database:
         '''
         return self.q(sql)
 
+    def customer_list(self):
+        sql = '''
+            select
+                c.customer_code,
+                c.customer_name,
+                a.street_address,
+                a.city,
+                a.state_code,
+                a.postal_code,
+                a.address_type
+            from customer_code c
+            left join address a on a.customer_code_id = c.customer_code_id
+            where c.company_code = 'spmtech'
+            and c.customer_code is not null
+            order by c.customer_code, a.address_id
+        '''
+        return self.q(sql)
+
     def days_since_last_activity(self):
         sql = '''
             select

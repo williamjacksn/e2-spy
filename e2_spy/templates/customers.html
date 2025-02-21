@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% set title = 'Customers' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <a class="btn btn-outline-success" href="{{ url_for('customers_xlsx') }}">
+                <i class="bi-file-earmark-spreadsheet"></i>
+                Export
+            </a>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Customer ID</th>
+                    <th>Customer Name</th>
+                    <th>Street Address</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>ZIP Code</th>
+                    <th class="text-nowrap">Address Type</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in g.rows %}
+                    <tr>
+                        <td class="text-nowrap">{{ row.customer_code }}</td>
+                        <td class="text-nowrap">{{ row.customer_name }}</td>
+                        <td>{{ row.street_address or '' }}</td>
+                        <td class="text-nowrap">{{ row.city or '' }}</td>
+                        <td>{{ row.state_code or '' }}</td>
+                        <td>{{ row.postal_code or '' }}</td>
+                        <td>{{ row.address_type or '' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

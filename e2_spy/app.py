@@ -208,6 +208,22 @@ def contacts_xlsx():
     return _make_xlsx(rows, col_names, headers, 'Contacts', 'Contacts.xlsx')
 
 
+@app.get('/customers')
+def customers():
+    e2db = get_e2_database(flask.g.db)
+    flask.g.rows = e2db.customer_list()
+    return flask.render_template('customers.html')
+
+
+@app.get('/customers.xlsx')
+def customers_xlsx():
+    e2db = get_e2_database(flask.g.db)
+    rows = e2db.customer_list()
+    headers = ['Customer ID', 'Customer Name', 'Street Address', 'City', 'State', 'ZIP Code', 'Address Type']
+    col_names = ['customer_code', 'customer_name', 'street_address', 'city', 'state_code', 'postal_code', 'address_type']
+    return _make_xlsx(rows, col_names, headers, 'Customers', 'Customers.xlsx')
+
+
 @app.get('/days-since-last-activity')
 def days_since_last_activity():
     e2db = get_e2_database(flask.g.db)
