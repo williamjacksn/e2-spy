@@ -204,7 +204,7 @@ class E2Database:
     def inventory_count_sheet(
             self, product_codes: list[str], include_active_parts: bool = True, include_inactive_parts: bool = True
     ):
-        where_clause = 'where 1=1'
+        where_clause = "where p.company_code = 'spmtech' and p.part_number is not null and p.part_number <> ''"
         params = None
         if len(product_codes) > 0:
             where_clause = f'{where_clause} and p.product_code in %s'
@@ -216,41 +216,39 @@ class E2Database:
             where_clause = f'{where_clause} and (p.active = 0 or p.active is null)'
 
         sql = f'''
-            select
-                l.part_number,
-                l.revision,
-                l.location,
-                coalesce(p.description, '') part_description,
-                coalesce(p.product_code, '') product_code,
-                l.quantity,
-                coalesce(p.active, 0) part_active
-            from (
+            with o as (
                 select
                     part_number_id,
-                    part_number,
-                    revision_level revision,
-                    material_location_code location,
+                    material_location_code,
                     sum(stocking_quantity) quantity
                 from order_material
-                where part_number <> ''
-                and material_location_code <> ''
-                and company_code = 'SPMTECH'
-                and warehouse_code = 'MAIN'
-                and status = 'Available'
-                group by part_number_id, part_number, revision_level, material_location_code
-            ) l
-            left join part_number p on p.part_number_id = l.part_number_id
+                where warehouse_code = 'main'
+                and status = 'available'
+                group by part_number_id, material_location_code
+            )
+            select
+                p.part_number,
+                p.part_number_id,
+                p.revision_level revision,
+                p.active part_active,
+                p.description part_description,
+                p.product_code,
+                o.material_location_code location,
+                o.quantity
+            from part_number p
+            left join o on o.part_number_id = p.part_number_id
             {where_clause}
-            order by l.part_number, l.revision, l.location
+            order by p.part_number, p.part_number_id
         '''
+
         return [{
             'part_number': r['part_number'],
             'revision': r['revision'],
             'part_active': bool(r['part_active']),
-            'location': r['location'],
+            'location': r['location'] or '',
             'part_description': r['part_description'],
             'product_code': r['product_code'],
-            'quantity': self.remove_exponent(decimal.Decimal(r['quantity'])),
+            'quantity': self.remove_exponent(decimal.Decimal(r['quantity'])) if r['quantity'] is not None else '',
         } for r in self.q(sql, params)]
 
     def job_performance(self, start_date: datetime.date, end_date: datetime.date, get_all: bool = False):
