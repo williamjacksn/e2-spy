@@ -1,0 +1,20 @@
+[project]
+name = "e2-spy"
+version = "2021.0.0"
+description = "Custom reports for E2"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.1.2",
+    "fort>=2025.1",
+    "pymssql>=2.3.11",
+    "waitress>=3.0.2",
+    "whitenoise>=6.11.0",
+    "xlsxwriter>=3.2.9",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.14",
+    "ty>=0.0.14",
+]
