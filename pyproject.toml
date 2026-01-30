@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.2",
     "fort>=2025.1",
+    "httpx>=0.28.1",
     "pymssql>=2.3.11",
     "waitress>=3.0.2",
     "whitenoise>=6.11.0",
