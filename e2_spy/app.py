@@ -1,8 +1,6 @@
 import calendar
-import config
 import contextlib
 import datetime
-import flask
 import functools
 import io
 import logging
@@ -10,11 +8,13 @@ import pathlib
 import secrets
 import signal
 import sys
+
+import config
+import flask
 import waitress
 import werkzeug.exceptions
 import whitenoise
 import xlsxwriter
-
 from db import AppDatabase, E2Database
 
 log = logging.getLogger(__name__)

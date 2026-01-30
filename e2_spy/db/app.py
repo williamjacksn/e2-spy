@@ -1,6 +1,7 @@
 import datetime
-import fort
 import secrets
+
+import fort
 
 
 class AppDatabase(fort.SQLiteDatabase):
