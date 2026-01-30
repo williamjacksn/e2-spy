@@ -9,13 +9,14 @@ import secrets
 import signal
 import sys
 
-import config
 import flask
 import waitress
 import werkzeug.exceptions
 import whitenoise
 import xlsxwriter
-from db import AppDatabase, E2Database
+
+from e2_spy import config, versions
+from e2_spy.db import AppDatabase, E2Database
 
 log = logging.getLogger(__name__)
 
@@ -129,6 +130,7 @@ def before_request():
     log.debug(
         f"{flask.request.method} {flask.request.path} -> {flask.request.endpoint}"
     )
+    flask.g.versions = versions
     flask.g.db = get_database()
     flask.session.permanent = True
     flask.g.session_id = flask.session.setdefault("session_id", secrets.token_urlsafe())
