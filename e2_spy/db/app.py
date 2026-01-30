@@ -46,6 +46,14 @@ class AppDatabase(fort.SQLiteDatabase):
         self.set_setting('e2-user', value)
 
     @property
+    def paperless_parts_api_key(self) -> str:
+        return self.get_setting('paperless-parts-api-key')
+
+    @paperless_parts_api_key.setter
+    def paperless_parts_api_key(self, value: str):
+        self.set_setting('paperless-parts-api-key', value)
+
+    @property
     def secret_key(self) -> bytes:
         return bytes.fromhex(self.get_setting('secret-key'))
 

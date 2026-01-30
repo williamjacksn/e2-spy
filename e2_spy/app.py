@@ -562,6 +562,13 @@ def settings():
     return flask.render_template('settings.html')
 
 
+@app.post('/settings/paperless-parts')
+def settings_paperless_parts():
+    """Handle a POST request to save settings for Paperless Parts to the database"""
+    flask.g.db.paperless_parts_api_key = flask.request.values.get('paperless-parts-api-key')
+    return flask.redirect(flask.url_for('settings'))
+
+
 @app.post('/settings/save')
 def settings_save():
     """Handle a POST request to save settings to the database"""

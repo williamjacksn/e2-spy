@@ -13,7 +13,7 @@
 
     <div class="row pt-3">
         <div class="col-6">
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">E2 database</h5>
 
@@ -61,6 +61,20 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Paperless Parts</h5>
+                    <form action="{{ url_for('settings_paperless_parts') }}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label" for="paperless-parts-api-key">Paperless Parts API key</label>
+                            <input class="form-control" id="paperless-parts-api-key" name="paperless-parts-api-key"
+                                   type="text" value="{{ g.db.paperless_parts_api_key or '' }}">
+                        </div>
+                        <button class="btn btn-primary" type="submit">Save</button>
                     </form>
                 </div>
             </div>
