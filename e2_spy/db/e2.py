@@ -87,7 +87,7 @@ class E2Database:
     def days_since_last_activity(self):
         sql = '''
             select
-                c.job_number, c.part_number, c.part_description, c.current_step,
+                c.job_number, c.part_number, coalesce(c.part_description, '') as part_description, c.current_step,
                 coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step, c.actual_start_date, c.actual_end_date,
                 datediff(
                     day, (select max(v) from (values (c.actual_start_date), (c.actual_end_date)) as value(v)),
