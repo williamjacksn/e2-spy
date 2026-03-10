@@ -28,7 +28,9 @@ logging.basicConfig(
 )
 
 
-def _make_xlsx(data, col_names, headers, table_name, filename):
+def _make_xlsx(
+    data: list, col_names: list, headers: list, table_name: str, filename: str
+) -> werkzeug.Response:
     output = io.BytesIO()
     workbook_options = {
         "default_date_format": "yyyy-mm-dd",
@@ -62,9 +64,8 @@ def _make_xlsx(data, col_names, headers, table_name, filename):
             elif col_name == "part_active":
                 col_data = row[col_name]
                 worksheet.write(i, j, col_data)
-                col_widths[j] = (
-                    9  # column header is 'Active', it is longer than any value (TRUE or FALSE)
-                )
+                # column header is 'Active', it is longer than any value (TRUE or FALSE)
+                col_widths[j] = 9
             elif col_name == "part_description":
                 col_data = row[col_name]
                 worksheet.write_string(i, j, col_data)
@@ -82,17 +83,19 @@ def _make_xlsx(data, col_names, headers, table_name, filename):
     response.headers.update(
         {
             "Content-Disposition": f'attachment; filename="{filename}"',
-            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Type": (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ),
         }
     )
     return response
 
 
-def str_to_date(s: str) -> datetime.date:
+def str_to_date(s: str | None) -> datetime.date:
     return datetime.datetime.strptime(s, "%Y-%m-%d").date()
 
 
-def get_database():
+def get_database() -> AppDatabase:
     """Get a connection to the database"""
     return AppDatabase(config.APP_DB_PATH)
 
@@ -120,13 +123,13 @@ app.secret_key = app_db.secret_key
 
 
 @app.errorhandler(werkzeug.exceptions.InternalServerError)
-def handle_internal_server_error(e):
+def handle_internal_server_error(e: werkzeug.exceptions.InternalServerError) -> str:
     flask.g.exception = e.original_exception
     return flask.render_template("internal-server-error.html")
 
 
 @app.before_request
-def before_request():
+def before_request() -> None:
     log.debug(
         f"{flask.request.method} {flask.request.path} -> {flask.request.endpoint}"
     )
@@ -155,7 +158,7 @@ def page_lock(f):
 
 
 @app.get("/")
-def index():
+def index() -> str | werkzeug.Response:
     """Render the front page"""
     if flask.g.db.e2_database_configured:
         return flask.render_template("index.html")
@@ -163,7 +166,7 @@ def index():
 
 
 @app.get("/action-summary")
-def action_summary():
+def action_summary() -> str:
     e2db = get_e2_database(flask.g.db)
     try:
         start_date = str_to_date(flask.request.values.get("start_date"))
@@ -193,14 +196,14 @@ def action_summary():
 
 
 @app.get("/closed-jobs")
-def closed_jobs():
+def closed_jobs() -> str:
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.closed_jobs()
     return flask.render_template("closed-jobs.html")
 
 
 @app.get("/closed-jobs.xlsx")
-def closed_jobs_xlsx():
+def closed_jobs_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     rows = e2db.closed_jobs()
     headers = [
@@ -227,14 +230,14 @@ def closed_jobs_xlsx():
 
 
 @app.get("/contacts")
-def contacts():
+def contacts() -> str:
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.contacts_list()
     return flask.render_template("contacts.html")
 
 
 @app.get("/contacts.xlsx")
-def contacts_xlsx():
+def contacts_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     rows = e2db.contacts_list()
     headers = [
@@ -259,14 +262,14 @@ def contacts_xlsx():
 
 
 @app.get("/customers")
-def customers():
+def customers() -> str:
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.customer_list()
     return flask.render_template("customers.html")
 
 
 @app.get("/customers.xlsx")
-def customers_xlsx():
+def customers_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     rows = e2db.customer_list()
     headers = [
@@ -291,14 +294,14 @@ def customers_xlsx():
 
 
 @app.get("/days-since-last-activity")
-def days_since_last_activity():
+def days_since_last_activity() -> str:
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.days_since_last_activity()
     return flask.render_template("days-since-last-activity.html")
 
 
 @app.get("/days-since-last-activity.xlsx")
-def days_since_last_activity_xlsx():
+def days_since_last_activity_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     rows = e2db.days_since_last_activity()
     headers = [
@@ -334,7 +337,7 @@ def days_since_last_activity_xlsx():
 
 @app.get("/income-statements")
 @page_lock
-def income_statements():
+def income_statements() -> str:
     try:
         start_date = str_to_date(flask.request.values.get("start_date"))
     except (TypeError, ValueError):
@@ -388,7 +391,7 @@ def income_statements():
 
 @app.get("/income-statements.xlsx")
 @page_lock
-def income_statements_xlsx():
+def income_statements_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     department = flask.request.values.get("department")
     start_date = str_to_date(flask.request.values.get("start_date"))
@@ -401,7 +404,7 @@ def income_statements_xlsx():
 
 
 @app.get("/inventory-count-sheet")
-def inventory_count_sheet():
+def inventory_count_sheet() -> str:
     e2db = get_e2_database(flask.g.db)
     flask.g.selected_product_codes = flask.request.values.getlist("product-code")
     flask.g.include_active_parts = "include-active-parts" in flask.request.values
@@ -418,7 +421,7 @@ def inventory_count_sheet():
 
 
 @app.get("/inventory-count-sheet.xlsx")
-def inventory_count_sheet_xlsx():
+def inventory_count_sheet_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     selected_product_codes = flask.request.values.getlist("product-code")
     include_active_parts = "include-active-parts" in flask.request.values
@@ -452,7 +455,7 @@ def inventory_count_sheet_xlsx():
 
 
 @app.post("/job-notes/form")
-def job_notes_form():
+def job_notes_form() -> str:
     db: AppDatabase = flask.g.db
     flask.g.job_number = flask.request.values.get("job_number")
     flask.g.job_notes = db.job_notes_get(flask.g.job_number)
@@ -460,7 +463,7 @@ def job_notes_form():
 
 
 @app.post("/job-notes/in-place")
-def job_notes_in_place():
+def job_notes_in_place() -> str:
     db: AppDatabase = flask.g.db
     flask.g.job_number = flask.request.values.get("job_number")
     flask.g.job_notes = flask.request.values.get("notes")
@@ -472,7 +475,7 @@ def job_notes_in_place():
 
 
 @app.get("/job-performance")
-def job_performance():
+def job_performance() -> str:
     e2db = get_e2_database(flask.g.db)
     try:
         start_date = str_to_date(flask.request.values.get("start_date"))
@@ -500,7 +503,7 @@ def job_performance():
 
 
 @app.get("/job-performance.xlsx")
-def job_performance_xlsx():
+def job_performance_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     get_all = flask.request.values.get("get_all") == "true"
     start_date = str_to_date(flask.request.values.get("start_date", "2022-01-01"))
@@ -546,7 +549,7 @@ def job_performance_xlsx():
 
 
 @app.get("/loading-summary")
-def loading_summary():
+def loading_summary() -> str:
     """Render the Loading Summary report"""
     e2db = get_e2_database(flask.g.db)
     flask.g.selected_departments = flask.request.values.getlist("department")
@@ -558,7 +561,7 @@ def loading_summary():
 
 
 @app.get("/loading-summary.xlsx")
-def loading_summary_xlsx():
+def loading_summary_xlsx() -> werkzeug.Response:
     """Generate the Loading Summary report as an Excel file"""
     e2db = get_e2_database(flask.g.db)
     selected_departments = flask.request.values.getlist("department")
@@ -599,7 +602,7 @@ def loading_summary_xlsx():
 
 
 @app.post("/lock")
-def lock():
+def lock() -> werkzeug.Response:
     endpoint = flask.request.values.get("endpoint")
     log.debug(f"Got a request from session {flask.g.session_id} to lock {endpoint}")
     flask.g.db.lock_page(flask.g.session_id, endpoint)
@@ -608,14 +611,14 @@ def lock():
 
 
 @app.get("/open-sales-report")
-def open_sales_report():
+def open_sales_report() -> str:
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.open_sales_report()
     return flask.render_template("open-sales-report.html")
 
 
 @app.get("/open-sales-report.xlsx")
-def open_sales_report_xlsx():
+def open_sales_report_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     rows = e2db.open_sales_report()
     col_names = [
@@ -669,7 +672,9 @@ def open_sales_report_xlsx():
     )
 
 
-def sales_summary_dates(start_date, end_date):
+def sales_summary_dates(
+    start_date: datetime.date | None, end_date: datetime.date | None
+) -> tuple[datetime.date, datetime.date]:
     if start_date is None:
         if end_date is None:
             # no start_date or end_date: use the current month
@@ -693,7 +698,7 @@ def sales_summary_dates(start_date, end_date):
 
 
 @app.get("/sales-summary")
-def sales_summary():
+def sales_summary() -> str:
     e2db = get_e2_database(flask.g.db)
     try:
         start_date = str_to_date(flask.request.values.get("start_date"))
@@ -711,7 +716,7 @@ def sales_summary():
 
 
 @app.get("/sales-summary.xlsx")
-def sales_summary_xlsx():
+def sales_summary_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     try:
         start_date = str_to_date(flask.request.values.get("start_date"))
@@ -775,14 +780,14 @@ def sales_summary_xlsx():
 
 
 @app.get("/service-vendors")
-def service_vendors():
+def service_vendors() -> str:
     e2db = get_e2_database(flask.g.db)
     flask.g.rows = e2db.service_vendors_list()
     return flask.render_template("service-vendors.html")
 
 
 @app.get("/service-vendors.xlsx")
-def service_vendors_xlsx():
+def service_vendors_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
     rows = e2db.service_vendors_list()
     col_names = ["service_code", "vendor_code", "is_default", "lead_time_days"]
@@ -793,13 +798,13 @@ def service_vendors_xlsx():
 
 
 @app.get("/settings")
-def settings():
+def settings() -> str:
     """Render the /settings page"""
     return flask.render_template("settings.html")
 
 
 @app.post("/settings/paperless-parts")
-def settings_paperless_parts():
+def settings_paperless_parts() -> werkzeug.Response:
     """Handle a POST request to save settings for Paperless Parts to the database"""
     flask.g.db.paperless_parts_api_key = flask.request.values.get(
         "paperless-parts-api-key"
@@ -808,7 +813,7 @@ def settings_paperless_parts():
 
 
 @app.post("/settings/save")
-def settings_save():
+def settings_save() -> werkzeug.Response:
     """Handle a POST request to save settings to the database"""
     flask.g.db.e2_database = flask.request.values.get("e2-database")
     flask.g.db.e2_hostname = flask.request.values.get("e2-hostname")
@@ -819,13 +824,13 @@ def settings_save():
 
 @app.get("/test")
 @page_lock
-def test():
+def test() -> str:
     return "OK"
 
 
 @app.post("/unlock")
-def unlock():
-    endpoint = flask.request.values.get("endpoint")
+def unlock() -> werkzeug.Response:
+    endpoint = flask.request.values.get("endpoint", "")
     password = flask.request.values.get("password")
     log.debug(f"Got a request from session {flask.g.session_id} to unlock {endpoint}")
     if flask.g.db.check_page_password(endpoint, password):
@@ -834,11 +839,11 @@ def unlock():
     return flask.redirect(flask.url_for(endpoint))
 
 
-def main():
+def main() -> None:
     waitress.serve(app, port=config.PORT, threads=8)
 
 
-def handle_sigterm(_signal, _frame):
+def handle_sigterm(_signal: int, _frame) -> None:
     sys.exit()
 
 
