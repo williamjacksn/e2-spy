@@ -9,3 +9,6 @@ ERR_LOG = "stderr.log"
 
 # port to listen on
 PORT = 80
+
+# paperless parts cache directory
+PAPERLESS_PARTS_CACHE_DIR = ".local/cache"

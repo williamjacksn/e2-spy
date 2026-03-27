@@ -5,6 +5,8 @@ import time
 
 import httpx
 
+from e2_spy import config
+
 log = logging.getLogger(__name__)
 
 
@@ -14,7 +16,9 @@ def get_client(api_key: str) -> httpx.Client:
 
 
 def get_quotes(c: httpx.Client, use_cache: bool = True) -> list:
-    p = pathlib.Path(".local/quotes.json")
+    cache = pathlib.Path(config.PAPERLESS_PARTS_CACHE_DIR)
+    cache.mkdir(parents=True, exist_ok=True)
+    p = cache / "quotes.json"
     if not use_cache or not p.exists():
         response = c.get("https://api.paperlessparts.com/quotes/public/new")
         p.write_bytes(response.content)
@@ -25,13 +29,15 @@ def get_quotes(c: httpx.Client, use_cache: bool = True) -> list:
 def get_quote_details(
     c: httpx.Client, quote_number: int, revision: int | None, use_cache: bool = True
 ) -> dict:
+    cache = pathlib.Path(config.PAPERLESS_PARTS_CACHE_DIR)
+    cache.mkdir(parents=True, exist_ok=True)
     if revision is None:
         path_rev = 0
         params = {}
     else:
         path_rev = revision
         params = {"revision": revision}
-    p = pathlib.Path(f".local/quote-{quote_number}-{path_rev}.json")
+    p = cache / f"quote-{quote_number}-{path_rev}.json"
     if not use_cache or not p.exists():
         log.info(f"Fetching info from API for quote {quote_number} revision {revision}")
         while True:
