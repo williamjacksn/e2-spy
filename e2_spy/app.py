@@ -8,6 +8,8 @@ import pathlib
 import secrets
 import signal
 import sys
+import types
+import typing
 
 import flask
 import waitress
@@ -15,7 +17,7 @@ import werkzeug.exceptions
 import whitenoise
 import xlsxwriter
 
-from e2_spy import config, versions
+from e2_spy import config, tasks, versions
 from e2_spy.db import AppDatabase, E2Database
 
 log = logging.getLogger(__name__)
@@ -24,7 +26,7 @@ logging.basicConfig(
     filename=str(config.APP_LOG),
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 
 
@@ -92,6 +94,8 @@ def _make_xlsx(
 
 
 def str_to_date(s: str | None) -> datetime.date:
+    if s is None:
+        s = "1970-01-01"
     return datetime.datetime.strptime(s, "%Y-%m-%d").date()
 
 
@@ -113,7 +117,7 @@ def get_e2_database(_db: AppDatabase) -> E2Database:
 app = flask.Flask(__name__)
 
 whitenoise_root = pathlib.Path(__file__).resolve().with_name("static")
-app.wsgi_app = whitenoise.WhiteNoise(
+app.wsgi_app = whitenoise.WhiteNoise(  # ty:ignore[invalid-assignment]
     app.wsgi_app, root=whitenoise_root, prefix="static/"
 )
 
@@ -140,11 +144,12 @@ def before_request() -> None:
     flask.g.unlocked_pages = flask.g.db.get_unlocked_pages(flask.g.session_id)
 
 
-def page_lock(f):
+def page_lock(f: typing.Callable) -> typing.Callable:
     @functools.wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated_function(*args, **kwargs) -> str | werkzeug.Response:  # noqa: ANN002, ANN003
         log.debug(
-            f"Checking if session {flask.g.session_id} has unlocked page {flask.request.endpoint}"
+            f"Checking if session {flask.g.session_id} "
+            f"has unlocked page {flask.request.endpoint}"
         )
         if flask.request.endpoint in flask.g.unlocked_pages:
             log.debug("Page is unlocked")
@@ -393,7 +398,7 @@ def income_statements() -> str:
 @page_lock
 def income_statements_xlsx() -> werkzeug.Response:
     e2db = get_e2_database(flask.g.db)
-    department = flask.request.values.get("department")
+    department = flask.request.values.get("department", "")
     start_date = str_to_date(flask.request.values.get("start_date"))
     end_date = str_to_date(flask.request.values.get("end_date"))
     rows = e2db.income_statement(department, start_date, end_date)
@@ -672,6 +677,24 @@ def open_sales_report_xlsx() -> werkzeug.Response:
     )
 
 
+@app.get("/paperless-parts/quotes/<int:quote_number>")
+def paperless_parts_quotes_detail(quote_number: int) -> str:
+    qs = flask.g.db.paperless_parts_quote_details_list_for_quote(quote_number)
+    return str([[q["quote_number"], q["revision_number"]] for q in qs])
+
+
+@app.get("/paperless-parts/quotes/dump")
+def paperless_parts_quotes_dump() -> str:
+    flask.g.db.paperless_parts_quote_details_delete_all()
+    return "ok"
+
+
+@app.get("/paperless-parts/sync")
+def paperless_parts_sync() -> werkzeug.Response:
+    tasks.scheduler.add_job(tasks.paperless_parts_sync)
+    return flask.redirect(flask.url_for("index"))
+
+
 def sales_summary_dates(
     start_date: datetime.date | None, end_date: datetime.date | None
 ) -> tuple[datetime.date, datetime.date]:
@@ -840,10 +863,12 @@ def unlock() -> werkzeug.Response:
 
 
 def main() -> None:
+    tasks.scheduler.start()
+    tasks.scheduler.add_job(tasks.paperless_parts_sync, "cron", day="*", hour="3")
     waitress.serve(app, port=config.PORT, threads=8)
 
 
-def handle_sigterm(_signal: int, _frame) -> None:
+def handle_sigterm(_signal: int, _frame: types.FrameType | None) -> None:
     sys.exit()
 
 
