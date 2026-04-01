@@ -1,8 +1,18 @@
-import datetime
+import datetime as dt
 import json
 import secrets
+from typing import TypedDict
 
 import fort
+
+
+class PaperlessPartsQuoteItemsDict(TypedDict):
+    quote_number: int
+    revision: int
+    part_number: str
+    part_name: str
+    part_revision: str
+    quote_sent_date: dt.datetime
 
 
 class AppDatabase(fort.SQLiteDatabase):
@@ -28,7 +38,7 @@ class AppDatabase(fort.SQLiteDatabase):
         """
         params = {
             "schema_version": schema_version,
-            "migration_timestamp": datetime.datetime.now(datetime.UTC),
+            "migration_timestamp": dt.datetime.now(dt.UTC),
         }
         self.u(sql, params)
 
@@ -204,6 +214,13 @@ class AppDatabase(fort.SQLiteDatabase):
                 )
             """)
             self.add_schema_version(4)
+        if self.version < 5:
+            self.log.info("Migrating database to schema version 5")
+            self.u("""
+                alter table paperless_parts_quote_items
+                add column quote_sent_date datetime
+            """)
+            self.add_schema_version(5)
 
     @property
     def paperless_parts_api_key(self) -> str:
@@ -272,12 +289,56 @@ class AppDatabase(fort.SQLiteDatabase):
 
     def paperless_parts_quote_details_list_for_quote(self, quote_number: int) -> list:
         sql = """
-            select quote_number, revision_number
+            select
+                created, due_date, id, payload, quote_notes, quote_number,
+                revision_number, sent_date, uuid
             from paperless_parts_quote_details
             where quote_number = :quote_number
+            order by revision_number nulls first
         """
         params = {"quote_number": quote_number}
         return self.q(sql, params)
+
+    def paperless_parts_quote_items_parts_in_range(
+        self, start_date: dt.date, end_date: dt.date
+    ) -> list[str]:
+        sql = """
+            select distinct part_number
+            from paperless_parts_quote_items
+            where part_number is not null
+            and quote_sent_date > :start_date
+            and quote_sent_date < :end_date
+        """
+        params = {"start_date": start_date, "end_date": end_date}
+        return [r["part_number"] for r in self.q(sql, params)]
+
+    def paperless_parts_quote_items_reset(
+        self, quote_number: int, quote_revision: int | None
+    ) -> None:
+        if quote_revision is None:
+            rev_condition = "is null"
+        else:
+            rev_condition = "= :revision"
+        sql = f"""
+            delete from paperless_parts_quote_items
+            where quote_number = :quote_number and revision {rev_condition}
+        """  # noqa: S608
+        params = {"quote_number": quote_number, "revision": quote_revision}
+        self.u(sql, params)
+
+    def paperless_parts_quote_items_insert(
+        self, params: PaperlessPartsQuoteItemsDict
+    ) -> None:
+        sql = """
+            insert into paperless_parts_quote_items (
+                quote_number, revision, part_number, part_name, part_revision,
+                quote_sent_date
+            ) values (
+                :quote_number, :revision, :part_number, :part_name, :part_revision,
+                :quote_sent_date
+            )
+        """
+        self.u(sql, params)  # ty:ignore[invalid-argument-type]
 
     def paperless_parts_quote_revisions_insert(
         self, quote_number: int, revision_number: int | None

@@ -1,8 +1,9 @@
 import calendar
 import contextlib
-import datetime
+import datetime as dt
 import functools
 import io
+import json
 import logging
 import pathlib
 import secrets
@@ -93,15 +94,15 @@ def _make_xlsx(
     return response
 
 
-def str_to_date(s: str | None) -> datetime.date:
+def str_to_date(s: str | None) -> dt.date:
     if s is None:
         s = "1970-01-01"
-    return datetime.datetime.strptime(s, "%Y-%m-%d").date()
+    return dt.datetime.strptime(s, "%Y-%m-%d").date()
 
 
 def get_database() -> AppDatabase:
     """Get a connection to the database"""
-    return AppDatabase(config.APP_DB_PATH)
+    return AppDatabase(str(config.APP_DB_PATH))
 
 
 def get_e2_database(_db: AppDatabase) -> E2Database:
@@ -183,13 +184,13 @@ def action_summary() -> str:
         end_date = None
     if start_date is None:
         if end_date is None:
-            start_date = datetime.date.today().replace(day=1)
-            end_date = datetime.date.today()
+            start_date = dt.date.today().replace(day=1)
+            end_date = dt.date.today()
         else:
-            start_date = end_date + datetime.timedelta(days=-30)
+            start_date = end_date + dt.timedelta(days=-30)
     else:
         if end_date is None:
-            end_date = start_date + datetime.timedelta(days=30)
+            end_date = start_date + dt.timedelta(days=30)
         elif start_date > end_date:
             start_date, end_date = end_date, start_date
     flask.g.start_date = start_date
@@ -353,13 +354,13 @@ def income_statements() -> str:
         end_date = None
     if start_date is None:
         if end_date is None:
-            start_date = datetime.date.today().replace(day=1)
-            end_date = datetime.date.today()
+            start_date = dt.date.today().replace(day=1)
+            end_date = dt.date.today()
         else:
             start_date = end_date.replace(day=1)
     else:
         if end_date is None:
-            end_date = datetime.date.today()
+            end_date = dt.date.today()
     if start_date > end_date:
         start_date, end_date = end_date, start_date
     flask.g.start_date = start_date
@@ -492,13 +493,13 @@ def job_performance() -> str:
         end_date = None
     if start_date is None:
         if end_date is None:
-            start_date = datetime.date.today() - datetime.timedelta(days=7)
-            end_date = datetime.date.today()
+            start_date = dt.date.today() - dt.timedelta(days=7)
+            end_date = dt.date.today()
         else:
-            start_date = end_date + datetime.timedelta(days=-7)
+            start_date = end_date + dt.timedelta(days=-7)
     else:
         if end_date is None:
-            end_date = start_date + datetime.timedelta(days=7)
+            end_date = start_date + dt.timedelta(days=7)
         elif start_date > end_date:
             start_date, end_date = end_date, start_date
     flask.g.start_date = start_date
@@ -678,12 +679,13 @@ def open_sales_report_xlsx() -> werkzeug.Response:
 
 
 @app.get("/paperless-parts/quotes/<int:quote_number>")
-def paperless_parts_quotes_detail(quote_number: int) -> str:
-    qs = flask.g.db.paperless_parts_quote_details_list_for_quote(quote_number)
-    return str([[q["quote_number"], q["revision_number"]] for q in qs])
+def paperless_parts_quotes_detail(quote_number: int) -> list[dict]:
+    db: AppDatabase = flask.g.db
+    qs = db.paperless_parts_quote_details_list_for_quote(quote_number)
+    return [json.loads(q["payload"]) for q in qs]
 
 
-@app.get("/paperless-parts/quotes/dump")
+@app.get("/paperless-parts/quotes/truncate")
 def paperless_parts_quotes_dump() -> str:
     flask.g.db.paperless_parts_quote_details_delete_all()
     return "ok"
@@ -696,12 +698,12 @@ def paperless_parts_sync() -> werkzeug.Response:
 
 
 def sales_summary_dates(
-    start_date: datetime.date | None, end_date: datetime.date | None
-) -> tuple[datetime.date, datetime.date]:
+    start_date: dt.date | None, end_date: dt.date | None
+) -> tuple[dt.date, dt.date]:
     if start_date is None:
         if end_date is None:
             # no start_date or end_date: use the current month
-            start_date = datetime.date.today().replace(day=1)
+            start_date = dt.date.today().replace(day=1)
             end_date = start_date.replace(
                 day=calendar.monthrange(start_date.year, start_date.month)[1]
             )
