@@ -1,22 +1,23 @@
 import contextlib
-import datetime
+import datetime as dt
 import decimal
 
 import pymssql
 
 
 class E2Database:
-    def __init__(self, cnx_details: dict):
+    def __init__(self, cnx_details: dict) -> None:
         self.cnx = pymssql.connect(**cnx_details, as_dict=True)
 
     def action_summary(
-        self, start_date: datetime.date, end_date: datetime.date, users: list[str]
-    ):
+        self, start_date: dt.date, end_date: dt.date, users: list[str]
+    ) -> list:
         sql = """
             select
                 a.action_code, a.action_id, a.completed_date,
-                datediff(day, a.entered_date, a.completed_date) days_to_complete, a.description, a.entered_date,
-                a.followup_by_user_code, a.followup_completed, a.notes, o.order_number, a.status,
+                datediff(day, a.entered_date, a.completed_date) days_to_complete,
+                a.description, a.entered_date, a.followup_by_user_code,
+                a.followup_completed, a.notes, o.order_number, a.status,
                 (datediff(day, a.entered_date, a.completed_date) + 1) -
                 (datediff(wk, a.entered_date, a.completed_date) * 2) -
                 (case when datename(dw, a.entered_date) = 'Sunday' then 1 else 0 end) -
@@ -32,16 +33,16 @@ class E2Database:
             """
         params = (
             start_date,
-            end_date + datetime.timedelta(days=1),
+            end_date + dt.timedelta(days=1),
             users,
         )
         return self.q(sql, params)
 
-    def closed_jobs(self):
+    def closed_jobs(self) -> list:
         sql = """
             select
-                oh.customer_code, oh.customer_po_number, od.date_closed, od.job_number, oh.order_number,
-                od.part_description, od.part_number
+                oh.customer_code, oh.customer_po_number, od.date_closed, od.job_number,
+                oh.order_number, od.part_description, od.part_number
             from order_detail od
             left join order_header oh on oh.order_header_id = od.order_header_id
             where oh.company_code = 'spmtech'
@@ -50,15 +51,17 @@ class E2Database:
         """
         return self.q(sql)
 
-    def contacts_list(self):
+    def contacts_list(self) -> list:
         sql = """
             select
-            	case
-	            	when c.customer_code_id is not null then 'Customer'
-	            	when c.vendor_code_id is not null then 'Vendor'
-	            end contact_type,
-                coalesce(cu.customer_name, '') customer_name, coalesce(v.vendor_name, '') vendor_name, c.contact_name,
-                coalesce(c.phone_number, '') phone_number, coalesce(c.email_address, '') email,
+                case
+                    when c.customer_code_id is not null then 'Customer'
+                    when c.vendor_code_id is not null then 'Vendor'
+                end contact_type,
+                coalesce(cu.customer_name, '') customer_name,
+                coalesce(v.vendor_name, '') vendor_name, c.contact_name,
+                coalesce(c.phone_number, '') phone_number,
+                coalesce(c.email_address, '') email,
                 coalesce(c.title, '') title
             from contact_header c
             left join customer_code cu on cu.customer_code_id = c.customer_code_id
@@ -69,7 +72,7 @@ class E2Database:
         """
         return self.q(sql)
 
-    def customer_list(self):
+    def customer_list(self) -> list:
         sql = """
             select
                 c.customer_code,
@@ -87,7 +90,7 @@ class E2Database:
         """
         return self.q(sql)
 
-    def days_since_last_activity(self):
+    def days_since_last_activity(self) -> list:
         sql = """
             select
                 c.job_number, c.part_number, coalesce(c.part_description, '') as part_description, c.current_step,
@@ -130,7 +133,7 @@ class E2Database:
         """
         return [row.get("followup_by_user_code") for row in self.q(sql)]
 
-    def get_loading_summary(self, departments: list[str]):
+    def get_loading_summary(self, departments: list[str]) -> list:
         sql = """
             select
                 sd.department_name, sd.job_number, sd.work_center, sd.priority, sd.part_number, sd.part_description,
@@ -139,16 +142,19 @@ class E2Database:
                 coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step
             from (
                 select
-                    department_name, due_date, item_number, job_number, part_description, part_number, priority,
-                    quantity_open, quantity_to_make, schedule_job_id, scheduled_end_date, scheduled_start_date,
-                    step_number, work_center, row_number() over (partition by job_number order by item_number) z
+                    department_name, due_date, item_number, job_number,
+                    part_description, part_number, priority, quantity_open,
+                    quantity_to_make, schedule_job_id, scheduled_end_date,
+                    scheduled_start_date, step_number, work_center,
+                    row_number() over (partition by job_number order by item_number) z
                 from schedule_detail
                 where schedule_header_id = 50
                 and department_name in %s
                 and scheduled_start_date < %s
                 and step_status in ('current', 'pending')) sd
             left join schedule_detail ns
-                on ns.schedule_job_id = sd.schedule_job_id and ns.item_number = sd.item_number + 1
+                on ns.schedule_job_id = sd.schedule_job_id
+                and ns.item_number = sd.item_number + 1
             where z = 1
             order by priority
         """
@@ -158,7 +164,7 @@ class E2Database:
         )
         return self.q(sql, params)
 
-    def gl_accounts_list(self):
+    def gl_accounts_list(self) -> list:
         sql = """
             select gl_account, description, gl_group_code, account_type
             from gl_account
@@ -167,8 +173,8 @@ class E2Database:
         return self.q(sql)
 
     def income_statement(
-        self, department: str, start_date: datetime.date, end_date: datetime.date
-    ):
+        self, department: str, start_date: dt.date, end_date: dt.date
+    ) -> list:
         department_patterns = {
             "shop": "%.1%",
             "processing": "%.2%",
@@ -187,7 +193,9 @@ class E2Database:
             params = (department_patterns.get(department), start_period, end_period)
         sql = f"""
             with a as (
-                select company_code, gl_account_id, gl_account, active, description, gl_group_code, account_type
+                select
+                    company_code, gl_account_id, gl_account, active, description,
+                    gl_group_code, account_type
                 from gl_account
                 {gl_account_filter}
             ),
@@ -203,7 +211,7 @@ class E2Database:
             from a
             left join b on b.gl_account_id = a.gl_account_id
             order by a.gl_account
-        """
+        """  # noqa: S608
         return self.q(sql, params)
 
     def inventory_count_sheet(
@@ -247,7 +255,7 @@ class E2Database:
             left join o on o.part_number_id = p.part_number_id
             {where_clause}
             order by p.part_number, p.part_number_id
-        """
+        """  # noqa: S608
 
         return [
             {
@@ -265,7 +273,7 @@ class E2Database:
         ]
 
     def job_performance(
-        self, start_date: datetime.date, end_date: datetime.date, get_all: bool = False
+        self, start_date: dt.date, end_date: dt.date, get_all: bool = False
     ):
         if get_all:
             date_closed_filter = ""
@@ -306,7 +314,7 @@ class E2Database:
             and o.status = 'closed'
             {date_closed_filter}
             order by o.date_closed desc
-        """
+        """  # noqa: S608
         params = (
             start_date,
             end_date,
@@ -374,7 +382,7 @@ class E2Database:
         """
         return self.q(sql)
 
-    def period_list(self, start_date: datetime.date, end_date: datetime.date):
+    def period_list(self, start_date: dt.date, end_date: dt.date):
         start_period = start_date.strftime("%Y%m")
         end_period = end_date.strftime("%Y%m")
         sql = """
@@ -395,7 +403,7 @@ class E2Database:
         """
         return [row["product_code"] for row in self.q(sql)]
 
-    def q(self, sql: str, params: tuple = None):
+    def q(self, sql: str, params: tuple | None = None):
         if params is None:
             params = tuple()
         with contextlib.closing(self.cnx.cursor()) as cur:
@@ -405,7 +413,7 @@ class E2Database:
     def remove_exponent(self, d):
         return d.quantize(decimal.Decimal(1)) if d == d.to_integral() else d.normalize()
 
-    def sales_summary(self, start_date: datetime.date, end_date: datetime.date):
+    def sales_summary(self, start_date: dt.date, end_date: dt.date):
         sql = """
             select
                 bh.invoice_number,
