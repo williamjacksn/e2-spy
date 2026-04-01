@@ -158,10 +158,7 @@ class E2Database:
             where z = 1
             order by priority
         """
-        params = (
-            departments,
-            pymssql.datetime.date.today() + pymssql.datetime.timedelta(days=1),
-        )
+        params = (departments, dt.date.today() + dt.timedelta(days=1))
         return self.q(sql, params)
 
     def gl_accounts_list(self) -> list:
