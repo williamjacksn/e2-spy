@@ -678,6 +678,40 @@ def open_sales_report_xlsx() -> werkzeug.Response:
     )
 
 
+@app.get("/paperless-parts/quote-items")
+def paperless_parts_quote_items() -> str:
+    start_val = flask.request.values.get("start")
+    if start_val is None:
+        today = dt.date.today()
+        if today.isoweekday() < 7:
+            start_date = today - dt.timedelta(days=today.isoweekday())
+        else:
+            start_date = today
+    else:
+        start_date = str_to_date(start_val)
+
+    end_val = flask.request.values.get("end")
+    if end_val is None:
+        end_date = start_date + dt.timedelta(days=7)
+    else:
+        end_date = str_to_date(end_val)
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    part_numbers = flask.g.db.paperless_parts_quote_items_parts_in_range(
+        start_date, end_date
+    )
+    return flask.render_template(
+        "paperless-parts/quote-items.html",
+        ctx={
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            "parts": part_numbers,
+        },
+    )
+
+
 @app.get("/paperless-parts/quotes/<int:quote_number>")
 def paperless_parts_quotes_detail(quote_number: int) -> list[dict]:
     db: AppDatabase = flask.g.db

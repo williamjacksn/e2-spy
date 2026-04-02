@@ -308,6 +308,7 @@ class AppDatabase(fort.SQLiteDatabase):
             where part_number is not null
             and quote_sent_date > :start_date
             and quote_sent_date < :end_date
+            order by part_number
         """
         params = {"start_date": start_date, "end_date": end_date}
         return [r["part_number"] for r in self.q(sql, params)]

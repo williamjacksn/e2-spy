@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% set title = 'Paperless Parts Quote Items' %}
+
+{% block title %}{{ super() }} / {{ title }}{% endblock %}
+
+{% block breadcrumb %}
+    {% include 'includes/back-to-home.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'includes/page-title-h1.html' %}
+
+    <div class="pt-3 row">
+        <div class="col">
+            <form>
+                <div class="g-1 row">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">quote sent between</span>
+                            <input aria-label="Start date" class="form-control" name="start" type="date"
+                                   value="{{ ctx.start }}">
+                            <span class="input-group-text">and</span>
+                            <input aria-label="End date" class="form-control" name="end" type="date"
+                                   value="{{ ctx.end }}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-outline-success" type="submit">
+                            <i class="bi-arrow-clockwise"></i>
+                            Apply
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="pt-3 row">
+        <div class="col">
+            <table class="table table-striped">
+                <thead class="bg-dark position-sticky text-light top-0">
+                <tr>
+                    <th>Part Number</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in ctx.parts %}
+                    <tr>
+                        <td>{{ row }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
