@@ -42,12 +42,18 @@
                 <thead class="bg-dark position-sticky text-light top-0">
                 <tr>
                     <th>Part Number</th>
+                    <th>Entered Date</th>
+                    <th>Revision Date</th>
+                    <th>Routed Date</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for row in ctx.parts %}
                     <tr>
                         <td>{{ row }}</td>
+                        <td>{{ ctx.part_dates[row]['entered_date'] }}</td>
+                        <td>{{ ctx.part_dates[row]['revision_date'] }}</td>
+                        <td>{{ ctx.part_dates[row]['routed_date'] }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

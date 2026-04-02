@@ -702,12 +702,16 @@ def paperless_parts_quote_items() -> str:
     part_numbers = flask.g.db.paperless_parts_quote_items_parts_in_range(
         start_date, end_date
     )
+
+    e2db = get_e2_database(flask.g.db)
+    part_dates = e2db.part_dates(part_numbers)
     return flask.render_template(
         "paperless-parts/quote-items.html",
         ctx={
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
             "parts": part_numbers,
+            "part_dates": part_dates,
         },
     )
 

@@ -379,6 +379,22 @@ class E2Database:
         """
         return self.q(sql)
 
+    def part_dates(self, part_numbers: list[str]) -> dict[str, dict]:
+        sql = """
+            select part_number, revision_date, date_routed, entered_date
+            from part_number
+            where part_number in %s
+        """
+        params = (part_numbers,)
+        return {
+            row.get("part_number"): {
+                "entered_date": row.get("entered_date"),
+                "revision_date": row.get("revision_date"),
+                "routed_date": row.get("date_routed"),
+            }
+            for row in self.q(sql, params)
+        }
+
     def period_list(self, start_date: dt.date, end_date: dt.date):
         start_period = start_date.strftime("%Y%m")
         end_period = end_date.strftime("%Y%m")
