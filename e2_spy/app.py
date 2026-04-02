@@ -699,11 +699,12 @@ def paperless_parts_quote_items() -> str:
     if start_date > end_date:
         start_date, end_date = end_date, start_date
 
-    part_numbers = flask.g.db.paperless_parts_quote_items_parts_in_range(
+    db = AppDatabase(str(config.APP_DB_PATH))
+    part_numbers = db.paperless_parts_quote_items_parts_in_range(
         start_date, end_date
     )
 
-    e2db = get_e2_database(flask.g.db)
+    e2db = get_e2_database(db)
     part_dates = e2db.part_dates(part_numbers)
     return flask.render_template(
         "paperless-parts/quote-items.html",

@@ -1,9 +1,10 @@
 import contextlib
 import datetime as dt
 import decimal
-
+import logging
 import pymssql
 
+log = logging.getLogger(__name__)
 
 class E2Database:
     def __init__(self, cnx_details: dict) -> None:
@@ -380,19 +381,23 @@ class E2Database:
         return self.q(sql)
 
     def part_dates(self, part_numbers: list[str]) -> dict[str, dict]:
-        sql = """
+        if not part_numbers:
+            return {}
+        placeholders = ", ".join(["%s"]*len(part_numbers))
+        sql = f"""
             select part_number, revision_date, date_routed, entered_date
             from part_number
-            where part_number in %s
+            where part_number in ({placeholders})
         """
-        params = (part_numbers,)
+        log.debug(sql)
+        log.debug(part_numbers)
         return {
             row.get("part_number"): {
                 "entered_date": row.get("entered_date"),
                 "revision_date": row.get("revision_date"),
                 "routed_date": row.get("date_routed"),
             }
-            for row in self.q(sql, params)
+            for row in self.q(sql, tuple(part_numbers))
         }
 
     def period_list(self, start_date: dt.date, end_date: dt.date):
