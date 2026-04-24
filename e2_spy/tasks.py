@@ -23,15 +23,15 @@ def paperless_parts_sync() -> None:
             qd = json.loads(qd["payload"])
         db.paperless_parts_quote_items_reset(q["quote"], q["revision"])
         for item in qd["quote_items"]:
-            for component in item["components"]:
-                db.paperless_parts_quote_items_insert(
-                    {
-                        "part_name": component["part_name"],
-                        "part_number": component["part_number"],
-                        "part_revision": component["revision"],
-                        "quote_number": q["quote"],
-                        "quote_sent_date": qd["sent_date"],
-                        "revision": q["revision"],
-                    }
-                )
+            component = item['root_component']
+            db.paperless_parts_quote_items_insert(
+                {
+                    "part_name": component["description"],
+                    "part_number": component["part_number"],
+                    "part_revision": component["revision"],
+                    "quote_number": q["quote"],
+                    "quote_sent_date": qd["sent_date"],
+                    "revision": q["revision"],
+                }
+            )
     log.info("Done syncing data from Paperless Parts")
