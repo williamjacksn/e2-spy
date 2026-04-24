@@ -14,7 +14,7 @@ def paperless_parts_sync() -> None:
     log.info("Syncing data from Paperless Parts...")
     db = AppDatabase(str(config.APP_DB_PATH))
     c = paperless.get_client(db.paperless_parts_api_key)
-    for q in paperless.get_quotes(c):
+    for q in paperless.get_quotes(c, use_cache=False):
         qd = db.paperless_parts_quote_details_get(q["quote"], q["revision"])
         if qd is None:
             qd = paperless.get_quote_details(c, q["quote"], q["revision"])
