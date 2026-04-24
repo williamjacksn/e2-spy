@@ -6,6 +6,7 @@ import pymssql
 
 log = logging.getLogger(__name__)
 
+
 class E2Database:
     def __init__(self, cnx_details: dict) -> None:
         self.cnx = pymssql.connect(**cnx_details, as_dict=True)
@@ -383,7 +384,7 @@ class E2Database:
     def part_dates(self, part_numbers: list[str]) -> dict[str, dict]:
         if not part_numbers:
             return {}
-        placeholders = ", ".join(["%s"]*len(part_numbers))
+        placeholders = ", ".join(["%s"] * len(part_numbers))
         sql = f"""
             select part_number, revision_date, date_routed, entered_date
             from part_number

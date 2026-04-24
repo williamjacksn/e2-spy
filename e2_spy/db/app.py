@@ -301,17 +301,23 @@ class AppDatabase(fort.SQLiteDatabase):
 
     def paperless_parts_quote_items_parts_in_range(
         self, start_date: dt.date, end_date: dt.date
-    ) -> list[str]:
+    ) -> list[dict]:
         sql = """
-            select distinct part_number
+            select part_number, quote_sent_date
             from paperless_parts_quote_items
             where part_number is not null
             and quote_sent_date > :start_date
             and quote_sent_date < :end_date
-            order by part_number
+            order by part_number, quote_sent_date
         """
         params = {"start_date": start_date, "end_date": end_date}
-        return [r["part_number"] for r in self.q(sql, params)]
+        return [
+            {
+                "part_number": r["part_number"],
+                "quote_sent_date": dt.datetime.fromisoformat(r["quote_sent_date"]),
+            }
+            for r in self.q(sql, params)
+        ]
 
     def paperless_parts_quote_items_reset(
         self, quote_number: int, quote_revision: int | None

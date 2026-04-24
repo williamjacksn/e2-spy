@@ -23,7 +23,7 @@ def paperless_parts_sync() -> None:
             qd = json.loads(qd["payload"])
         db.paperless_parts_quote_items_reset(q["quote"], q["revision"])
         for item in qd["quote_items"]:
-            component = item['root_component']
+            component = item["root_component"]
             db.paperless_parts_quote_items_insert(
                 {
                     "part_name": component["description"],

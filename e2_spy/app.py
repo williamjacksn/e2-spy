@@ -700,18 +700,17 @@ def paperless_parts_quote_items() -> str:
         start_date, end_date = end_date, start_date
 
     db = AppDatabase(str(config.APP_DB_PATH))
-    part_numbers = db.paperless_parts_quote_items_parts_in_range(
-        start_date, end_date
-    )
+    parts = db.paperless_parts_quote_items_parts_in_range(start_date, end_date)
 
     e2db = get_e2_database(db)
+    part_numbers = list(set([r["part_number"] for r in parts]))
     part_dates = e2db.part_dates(part_numbers)
     return flask.render_template(
         "paperless-parts/quote-items.html",
         ctx={
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),
-            "parts": part_numbers,
+            "parts": parts,
             "part_dates": part_dates,
         },
     )
