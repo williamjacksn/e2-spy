@@ -303,16 +303,18 @@ class AppDatabase(fort.SQLiteDatabase):
         self, start_date: dt.date, end_date: dt.date
     ) -> list[dict]:
         sql = """
-            select part_number, quote_sent_date
+            select quote_number, revision, part_number, quote_sent_date
             from paperless_parts_quote_items
             where part_number is not null
             and quote_sent_date > :start_date
             and quote_sent_date < :end_date
-            order by part_number, quote_sent_date
+            order by quote_number, revision nulls first, quote_sent_date, part_number
         """
         params = {"start_date": start_date, "end_date": end_date}
         return [
             {
+                "quote_number": r["quote_number"],
+                "revision_number": r["revision"],
                 "part_number": r["part_number"],
                 "quote_sent_date": dt.datetime.fromisoformat(r["quote_sent_date"]),
             }

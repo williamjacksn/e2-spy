@@ -41,6 +41,7 @@
             <table class="table table-striped">
                 <thead class="bg-dark position-sticky text-light top-0">
                 <tr>
+                    <th>Quote Number</th>
                     <th>Part Number</th>
                     <th>Paperless Quote Sent Date</th>
                     <th>E2 Entered Date</th>
@@ -49,6 +50,7 @@
                 <tbody>
                 {% for row in ctx.parts %}
                     <tr>
+                        <td>{{ row.quote_number }}{% if row.revision_number is not none %} rev {{ row.revision_number }}{% endif %}</td>
                         <td>{{ row.part_number }}</td>
                         <td>{{ row.quote_sent_date.strftime('%Y-%m-%d %H:%S') }}</td>
                         {% if row.part_number in ctx.part_dates %}
