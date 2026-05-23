@@ -715,7 +715,7 @@ def paperless_parts_quote_items() -> str:
                 new_part_numbers.add(this_pn)
             else:
                 entered_date = part_dates[this_pn]["entered_date"]
-                log.info(
+                log.debug(
                     f"{this_pn} quote sent {quote_sent}, part entered {entered_date}"
                 )
                 if quote_sent < entered_date:
