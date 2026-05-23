@@ -2,7 +2,7 @@ import datetime as dt
 import json
 import secrets
 from typing import TypedDict
-
+from zoneinfo import ZoneInfo
 import fort
 
 
@@ -316,7 +316,9 @@ class AppDatabase(fort.SQLiteDatabase):
                 "quote_number": r["quote_number"],
                 "revision_number": r["revision"],
                 "part_number": r["part_number"],
-                "quote_sent_date": dt.datetime.fromisoformat(r["quote_sent_date"]),
+                "quote_sent_date": dt.datetime.fromisoformat(
+                    r["quote_sent_date"]
+                ).astimezone(ZoneInfo("America/Chicago")),
             }
             for r in self.q(sql, params)
         ]

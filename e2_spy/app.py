@@ -705,6 +705,23 @@ def paperless_parts_quote_items() -> str:
     e2db = get_e2_database(db)
     part_numbers = list(set([r["part_number"] for r in parts]))
     part_dates = e2db.part_dates(part_numbers)
+
+    new_part_numbers = set()
+    for r in parts:
+        this_pn = r["part_number"]
+        quote_sent = r["quote_sent_date"]
+        if this_pn not in new_part_numbers:
+            if this_pn not in part_dates:
+                new_part_numbers.add(this_pn)
+            else:
+                entered_date = part_dates[this_pn]["entered_date"]
+                log.info(
+                    f"{this_pn} quote sent {quote_sent}, part entered {entered_date}"
+                )
+                if quote_sent < entered_date:
+                    new_part_numbers.add(this_pn)
+    new_part_count = len(new_part_numbers)
+
     return flask.render_template(
         "paperless-parts/quote-items.html",
         ctx={
@@ -712,6 +729,7 @@ def paperless_parts_quote_items() -> str:
             "end": end_date.isoformat(),
             "parts": parts,
             "part_dates": part_dates,
+            "new_part_count": new_part_count,
         },
     )
 

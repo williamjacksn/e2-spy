@@ -386,7 +386,11 @@ class E2Database:
             return {}
         placeholders = ", ".join(["%s"] * len(part_numbers))
         sql = f"""
-            select part_number, revision_date, date_routed, entered_date
+            select
+                part_number,
+                revision_date,
+                date_routed,
+                entered_date at time zone 'Central Standard Time' as entered_date
             from part_number
             where part_number in ({placeholders})
         """
