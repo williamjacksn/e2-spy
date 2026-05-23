@@ -57,7 +57,7 @@
                 {% for row in ctx.parts %}
                     <tr>
                         <td>{{ row.quote_number }}{% if row.revision_number is not none %} rev {{ row.revision_number }}{% endif %}</td>
-                        <td>{{ row.part_number }}</td>
+                        <td {% if row.part_number in ctx.new_part_numbers %}class="table-success"{% endif %}>{{ row.part_number }}</td>
                         <td>{{ row.quote_sent_date.strftime('%Y-%m-%d %H:%S') }}</td>
                         {% if row.part_number in ctx.part_dates %}
                         <td>{{ ctx.part_dates[row.part_number]['entered_date'].strftime('%Y-%m-%d %H:%S') }}</td>

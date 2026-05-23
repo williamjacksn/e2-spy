@@ -721,6 +721,7 @@ def paperless_parts_quote_items() -> str:
                 if quote_sent < entered_date:
                     new_part_numbers.add(this_pn)
     new_part_count = len(new_part_numbers)
+    log.debug(f"New part numbers: {new_part_numbers}")
 
     return flask.render_template(
         "paperless-parts/quote-items.html",
@@ -729,6 +730,7 @@ def paperless_parts_quote_items() -> str:
             "end": end_date.isoformat(),
             "parts": parts,
             "part_dates": part_dates,
+            "new_part_numbers": new_part_numbers,
             "new_part_count": new_part_count,
         },
     )
