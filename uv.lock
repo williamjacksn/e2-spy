@@ -91,7 +91,7 @@ dev = [
 requires-dist = [
     { name = "apscheduler", specifier = ">=3.11.2" },
     { name = "flask", specifier = ">=3.1.2" },
-    { name = "fort", specifier = ">=2025.1" },
+    { name = "fort", specifier = ">=2026.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pymssql", specifier = ">=2.3.11" },
     { name = "waitress", specifier = ">=3.0.2" },
@@ -124,11 +124,11 @@ wheels = [
 
 [[package]]
 name = "fort"
-version = "2025.1"
+version = "2026.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/31/6f/47b3bb30e057c028f2b71edc54457134d240a9d1fc009fed01fe35becd9b/fort-2025.1.tar.gz", hash = "sha256:55d1526f31c50d62b3531fa0d1c3539fc55691046c0c665401ca9c3139cc063b", size = 3350, upload-time = "2025-10-13T14:21:55.763Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/ad/657f3c60aff8010d39381527d5b09147823b91b576ee3b423fa85d695192/fort-2026.0.tar.gz", hash = "sha256:d30fa2669ccd4691fa490a809db840fd22be0083d71a24a2243945e799b2ef4d", size = 3390, upload-time = "2026-05-28T14:21:01.589Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/cd/42535fd2a505ad2e4cd7a8909d5daa4caafa4420786d62aced8344de45b1/fort-2025.1-py3-none-any.whl", hash = "sha256:8444a306896e72ecf7d5e5b5c02579ea9f392e8834ab12967eb0fb0bb9c1ad89", size = 4449, upload-time = "2025-10-13T14:21:54.745Z" },
+    { url = "https://files.pythonhosted.org/packages/82/13/7bb8ec16b5f98341458c34d1909a36239450ff3876741d1700b9b4edd88c/fort-2026.0-py3-none-any.whl", hash = "sha256:0479f0ab071a180fe4e8bb4b59a8c132b75ba33c556908720f40767b6929410e", size = 4440, upload-time = "2026-05-28T14:21:00.74Z" },
 ]
 
 [[package]]
