@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "apscheduler>=3.11.2",
     "flask>=3.1.2",
-    "fort>=2025.1",
+    "fort>=2026.0",
     "httpx>=0.28.1",
     "pymssql>=2.3.11",
     "waitress>=3.0.2",
