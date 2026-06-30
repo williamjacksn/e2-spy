@@ -5,7 +5,7 @@ description = "Custom reports for E2"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "apscheduler>=3.11.2",
+    "apscheduler>=3.11.3",
     "flask>=3.1.2",
     "fort>=2026.0",
     "httpx>=0.28.1",
