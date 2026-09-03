@@ -2,6 +2,7 @@ import contextlib
 import datetime as dt
 import decimal
 import logging
+
 import pymssql
 
 log = logging.getLogger(__name__)
@@ -23,7 +24,9 @@ class E2Database:
                 (datediff(day, a.entered_date, a.completed_date) + 1) -
                 (datediff(wk, a.entered_date, a.completed_date) * 2) -
                 (case when datename(dw, a.entered_date) = 'Sunday' then 1 else 0 end) -
-                (case when datename(dw, a.completed_date) = 'Saturday' then 1 else 0 end) business_days_to_complete
+                (case
+                    when datename(dw, a.completed_date) = 'Saturday' then 1 else 0
+                end) business_days_to_complete
             from action a
             left join order_header o on o.order_header_id = a.order_header_id
             where a.order_header_id is not null
@@ -95,15 +98,20 @@ class E2Database:
     def days_since_last_activity(self) -> list:
         sql = """
             select
-                c.job_number, c.part_number, coalesce(c.part_description, '') as part_description, c.current_step,
-                coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step, c.actual_start_date, c.actual_end_date,
+                c.job_number, c.part_number,
+                coalesce(c.part_description, '') as part_description, c.current_step,
+                coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step,
+                c.actual_start_date, c.actual_end_date,
                 datediff(
-                    day, (select max(v) from (values (c.actual_start_date), (c.actual_end_date)) as value(v)),
+                    day,
+                    (select max(v) from (values
+                        (c.actual_start_date), (c.actual_end_date)) as value(v)),
                     sysdatetime()
                 ) as days_since_last_activity
             from (
                 select
-                    job_number, part_number, part_description, coalesce(work_center, vendor_code) current_step,
+                    job_number, part_number, part_description,
+                    coalesce(work_center, vendor_code) current_step,
                     actual_start_date, actual_end_date, item_number,
                     row_number() over (partition by job_number order by item_number) z
                 from schedule_detail
@@ -111,7 +119,8 @@ class E2Database:
                 and step_status in ('current', 'pending')
             ) c
             left join schedule_detail ns on
-                ns.schedule_header_id = 50 and ns.job_number = c.job_number and ns.item_number = c.item_number + 1
+                ns.schedule_header_id = 50 and ns.job_number = c.job_number
+                and ns.item_number = c.item_number + 1
             where z = 1
             order by days_since_last_activity desc
         """
@@ -138,8 +147,10 @@ class E2Database:
     def get_loading_summary(self, departments: list[str]) -> list:
         sql = """
             select
-                sd.department_name, sd.job_number, sd.work_center, sd.priority, sd.part_number, sd.part_description,
-                sd.quantity_to_make, sd.quantity_open, sd.scheduled_start_date start_date,
+                sd.department_name, sd.job_number, sd.work_center, sd.priority,
+                sd.part_number, sd.part_description,
+                sd.quantity_to_make, sd.quantity_open,
+                sd.scheduled_start_date start_date,
                 sd.scheduled_end_date end_date, sd.due_date,
                 coalesce(ns.work_center, ns.vendor_code, 'LAST STEP') next_step
             from (
@@ -160,7 +171,8 @@ class E2Database:
             where z = 1
             order by priority
         """
-        params = (departments, dt.date.today() + dt.timedelta(days=1))
+        today = dt.datetime.now(dt.UTC).astimezone().date()
+        params = (departments, today + dt.timedelta(days=1))
         return self.q(sql, params)
 
     def gl_accounts_list(self) -> list:
@@ -218,8 +230,11 @@ class E2Database:
         product_codes: list[str],
         include_active_parts: bool = True,
         include_inactive_parts: bool = True,
-    ):
-        where_clause = "where p.company_code = 'spmtech' and p.part_number is not null and p.part_number <> ''"
+    ) -> list[dict]:
+        where_clause = (
+            "where p.company_code = 'spmtech' "
+            "and p.part_number is not null and p.part_number <> ''"
+        )
         params = None
         if len(product_codes) > 0:
             where_clause = f"{where_clause} and p.product_code in %s"
@@ -273,7 +288,7 @@ class E2Database:
 
     def job_performance(
         self, start_date: dt.date, end_date: dt.date, get_all: bool = False
-    ):
+    ) -> list:
         if get_all:
             date_closed_filter = ""
         else:
@@ -320,15 +335,19 @@ class E2Database:
         )
         return self.q(sql, params)
 
-    def open_sales_report(self):
+    def open_sales_report(self) -> list:
         sql = """
             with jpo as (
                 select
                     j.job_number,
-                    string_agg(p.vendor_name, char(10)) within group (order by p.po_number) vendor,
-                    string_agg(p.po_number, char(10)) within group (order by p.po_number) vendor_po,
-                    string_agg(format(p.po_date, 'yyyy-MM-dd'), char(10)) within group (order by p.po_number) as po_date,
-                    string_agg(format(p.due_date, 'yyyy-MM-dd'), char(10)) within group (order by p.po_number) po_due_date
+                    string_agg(p.vendor_name, char(10))
+                        within group (order by p.po_number) vendor,
+                    string_agg(p.po_number, char(10))
+                        within group (order by p.po_number) vendor_po,
+                    string_agg(format(p.po_date, 'yyyy-MM-dd'), char(10))
+                        within group (order by p.po_number) as po_date,
+                    string_agg(format(p.due_date, 'yyyy-MM-dd'), char(10))
+                        within group (order by p.po_number) po_due_date
                 from (
                     select distinct m.job_number, m.po_header_id
                     from order_material m
@@ -342,7 +361,9 @@ class E2Database:
                 from (
                     select
                         job_number, coalesce(work_center, vendor_code) current_step,
-                        row_number() over (partition by job_number order by item_number) z
+                        row_number() over (
+                            partition by job_number order by item_number
+                        ) z
                     from schedule_detail
                     where schedule_header_id = 50
                     and step_status in ('current', 'pending')
@@ -365,7 +386,8 @@ class E2Database:
                 coalesce(sj.sales_amount, od.gross_amount) sales_amount,
                 coalesce(format(oh.order_date, 'yyyy-MM-dd'), '') order_date,
                 coalesce(format(od.projected_ship_date, 'yyyy-MM-dd'), '') ship_by_date,
-                coalesce(format(sj.scheduled_end_date, 'yyyy-MM-dd'), '') scheduled_end_date,
+                coalesce(format(sj.scheduled_end_date, 'yyyy-MM-dd'), '')
+                    scheduled_end_date,
                 jpo.vendor,
                 jpo.vendor_po,
                 jpo.po_date,
@@ -373,7 +395,8 @@ class E2Database:
             from order_detail od
             left join order_header oh on oh.order_header_id = od.order_header_id
             left join jcs on jcs.job_number = od.job_number
-            left join schedule_job sj on sj.order_detail_id = od.order_detail_id and sj.schedule_header_id = 50
+            left join schedule_job sj on sj.order_detail_id = od.order_detail_id
+                and sj.schedule_header_id = 50
             left join jpo on jpo.job_number = od.job_number
             where od.company_code = 'spmtech'
             and od.status in ('firm', 'hold', 'in process', 'released')
@@ -393,7 +416,7 @@ class E2Database:
                 entered_date at time zone 'Central Standard Time' as entered_date
             from part_number
             where part_number in ({placeholders})
-        """
+        """  # noqa: S608
         log.debug(sql)
         log.debug(part_numbers)
         return {
@@ -405,7 +428,7 @@ class E2Database:
             for row in self.q(sql, tuple(part_numbers))
         }
 
-    def period_list(self, start_date: dt.date, end_date: dt.date):
+    def period_list(self, start_date: dt.date, end_date: dt.date) -> list:
         start_period = start_date.strftime("%Y%m")
         end_period = end_date.strftime("%Y%m")
         sql = """
@@ -417,26 +440,27 @@ class E2Database:
         params = (start_period, end_period)
         return [row.get("period_number") for row in self.q(sql, params)]
 
-    def product_codes(self):
+    def product_codes(self) -> list[str]:
         sql = """
             select distinct product_code
             from part_number
-            where product_code is not null and product_code <> '' and company_code = 'SPMTECH'
+            where product_code is not null and product_code <> ''
+            and company_code = 'SPMTECH'
             order by product_code
         """
         return [row["product_code"] for row in self.q(sql)]
 
-    def q(self, sql: str, params: tuple | None = None):
+    def q(self, sql: str, params: tuple | None = None) -> list:
         if params is None:
-            params = tuple()
+            params = ()
         with contextlib.closing(self.cnx.cursor()) as cur:
             cur.execute(sql, params)
             return cur.fetchall()
 
-    def remove_exponent(self, d):
+    def remove_exponent(self, d: decimal.Decimal) -> decimal.Decimal:
         return d.quantize(decimal.Decimal(1)) if d == d.to_integral() else d.normalize()
 
-    def sales_summary(self, start_date: dt.date, end_date: dt.date):
+    def sales_summary(self, start_date: dt.date, end_date: dt.date) -> list[dict]:
         sql = """
             select
                 bh.invoice_number,
@@ -460,8 +484,10 @@ class E2Database:
                 ad.amount_credit amount
             from billing_header bh
             left join billing_detail bd on bd.billing_header_id = bh.billing_header_id
-            left join commission_distribution cd on cd.billing_detail_id = bd.billing_detail_id
-            left join accounting_distribution ad on ad.billing_detail_id = bd.billing_detail_id
+            left join commission_distribution cd
+                on cd.billing_detail_id = bd.billing_detail_id
+            left join accounting_distribution ad
+                on ad.billing_detail_id = bd.billing_detail_id
                 and ad.account_type in ('miscellaneous charge', 'total')
             left join gl_account ga on ga.gl_account = ad.gl_account
             where bh.company_code = 'spmtech' and bh.invoice_number is not null
@@ -499,7 +525,7 @@ class E2Database:
             for r in self.q(sql, params)
         ]
 
-    def service_vendors_list(self):
+    def service_vendors_list(self) -> list:
         sql = """
             select s.service_code, o.vendor_code, o.is_default, o.lead_time_days
             from service_code s

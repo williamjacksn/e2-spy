@@ -94,10 +94,15 @@ def _make_xlsx(
     return response
 
 
+def today() -> dt.date:
+    """Return the current date in the server's local timezone."""
+    return dt.datetime.now(dt.UTC).astimezone().date()
+
+
 def str_to_date(s: str | None) -> dt.date:
     if s is None:
         s = "1970-01-01"
-    return dt.datetime.strptime(s, "%Y-%m-%d").date()
+    return dt.datetime.strptime(s, "%Y-%m-%d").replace(tzinfo=dt.UTC).date()
 
 
 def get_database() -> AppDatabase:
@@ -184,8 +189,8 @@ def action_summary() -> str:
         end_date = None
     if start_date is None:
         if end_date is None:
-            start_date = dt.date.today().replace(day=1)
-            end_date = dt.date.today()
+            start_date = today().replace(day=1)
+            end_date = today()
         else:
             start_date = end_date + dt.timedelta(days=-30)
     else:
@@ -354,13 +359,13 @@ def income_statements() -> str:
         end_date = None
     if start_date is None:
         if end_date is None:
-            start_date = dt.date.today().replace(day=1)
-            end_date = dt.date.today()
+            start_date = today().replace(day=1)
+            end_date = today()
         else:
             start_date = end_date.replace(day=1)
     else:
         if end_date is None:
-            end_date = dt.date.today()
+            end_date = today()
     if start_date > end_date:
         start_date, end_date = end_date, start_date
     flask.g.start_date = start_date
@@ -493,8 +498,8 @@ def job_performance() -> str:
         end_date = None
     if start_date is None:
         if end_date is None:
-            start_date = dt.date.today() - dt.timedelta(days=7)
-            end_date = dt.date.today()
+            start_date = today() - dt.timedelta(days=7)
+            end_date = today()
         else:
             start_date = end_date + dt.timedelta(days=-7)
     else:
@@ -682,11 +687,11 @@ def open_sales_report_xlsx() -> werkzeug.Response:
 def paperless_parts_quote_items() -> str:
     start_val = flask.request.values.get("start")
     if start_val is None:
-        today = dt.date.today()
-        if today.isoweekday() < 7:
-            start_date = today - dt.timedelta(days=today.isoweekday())
+        today_date = today()
+        if today_date.isoweekday() < 7:
+            start_date = today_date - dt.timedelta(days=today_date.isoweekday())
         else:
-            start_date = today
+            start_date = today_date
     else:
         start_date = str_to_date(start_val)
 
@@ -703,7 +708,7 @@ def paperless_parts_quote_items() -> str:
     parts = db.paperless_parts_quote_items_parts_in_range(start_date, end_date)
 
     e2db = get_e2_database(db)
-    part_numbers = list(set([r["part_number"] for r in parts]))
+    part_numbers = list({r["part_number"] for r in parts})
     part_dates = e2db.part_dates(part_numbers)
 
     new_part_numbers = set()
@@ -761,7 +766,7 @@ def sales_summary_dates(
     if start_date is None:
         if end_date is None:
             # no start_date or end_date: use the current month
-            start_date = dt.date.today().replace(day=1)
+            start_date = today().replace(day=1)
             end_date = start_date.replace(
                 day=calendar.monthrange(start_date.year, start_date.month)[1]
             )
